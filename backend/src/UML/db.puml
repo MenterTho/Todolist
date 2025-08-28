@@ -1,0 +1,113 @@
+@startuml
+
+entity User {
+  *id : int
+  --
+  email : string
+  password : string
+  name : string
+  phoneNumber : string
+  avatarUrl : string
+  role : string
+  isActive : boolean
+  lastLogin : Date
+  resetToken : string
+  resetTokenExpiresAt : Date
+  createdAt : Date
+  updatedAt : Date
+  isDeleted : boolean
+}
+
+entity Workspace {
+  *id : int
+  --
+  name : string
+  description : string
+  ownerId : int
+  createdAt : Date
+  updatedAt : Date
+  isDeleted : boolean
+}
+
+entity UserWorkspace {
+  *userId : int
+  *workspaceId : int
+  --
+  role : string
+  joinedAt : Date
+}
+
+entity Session {
+  *id : int
+  --
+  userId : int
+  token : string
+  refreshToken : string
+  expiresAt : Date
+  isActive : boolean
+  deviceInfo : string
+  ipAddress : string
+  createdAt : Date
+  updatedAt : Date
+}
+
+entity Project {
+  *id : int
+  --
+  name : string
+  description : string
+  workspaceId : int
+  createdAt : Date
+  updatedAt : Date
+  isDeleted : boolean
+}
+
+entity Task {
+  *id : int
+  --
+  title : string
+  description : string
+  projectId : int
+  creatorId : int
+  assigneeId : int
+  status : string
+  dueDate : Date
+  createdAt : Date
+  updatedAt : Date
+}
+
+entity Comment {
+  *id : int
+  --
+  content : string
+  taskId : int
+  authorId : int
+  parentId : int?
+  createdAt : Date
+}
+
+entity Notification {
+  *id : int
+  --
+  recipientId : int
+  message : string
+  type : string
+  isRead : boolean
+  createdAt : Date
+}
+
+' Relationships
+User ||--o{ UserWorkspace : "userId"
+Workspace ||--o{ UserWorkspace : "workspaceId"
+
+User ||--o{ Session : "userId"
+User ||--o{ Task : "creatorId/assigneeId"
+User ||--o{ Comment : "authorId"
+User ||--o{ Notification : "recipientId"
+
+Workspace ||--o{ Project : "workspaceId"
+Project ||--o{ Task : "projectId"
+Task ||--o{ Comment : "taskId"
+Comment ||--o{ Comment : "parentId"
+
+@enduml
