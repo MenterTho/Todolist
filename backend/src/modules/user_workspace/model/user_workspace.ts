@@ -1,5 +1,5 @@
 import { Entity, PrimaryColumn, Column, ManyToOne, CreateDateColumn, Index } from "typeorm";
-import { User } from "../../auth/model/user.model";
+import { User } from "../../auth/model/auth.model";
 import { Workspace } from "../../workspace/model/workspace.model";
 
 @Entity("user_workspaces")

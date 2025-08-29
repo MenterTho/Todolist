@@ -1,13 +1,13 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-// import { User } from "../modules/auth/models/user.models";
-// import { Session } from "../modules/auth/models/session.models";
-// import { Workspace } from "../modules/workspace/models/workspace.models";
-// import { UserWorkspace } from "../modules/workspace/models/user-workspace.models";
-// import { Project } from "../modules/project/models/project.models";
-// import { Task } from "../modules/task/models/task.models";
-// import { Comment } from "../modules/comment/models/comment.models";
-// import { Notification } from "../modules/notification/models/notification.models";
+import { User } from "../../modules/auth/model/auth.model";
+import { Session } from "../../modules/auth/model/session.model";
+import { Workspace } from "../../modules/workspace/model/workspace.model";
+import { UserWorkspace } from "../../modules/user_workspace/model/user_workspace";
+import { Project } from "../../modules/project/model/project.model";
+import { Task } from "../../modules/task/model/task.model";
+import { Comment } from "../../modules/comment/model/comment.model";
+import { Notification } from "../../modules/notification/models/notification.model";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -16,7 +16,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || "postgres",
   password: process.env.DB_PASS || "tuantho123",
   database: process.env.DB_NAME || "todolist",
-  // entities: [User, Session, Workspace, UserWorkspace, Project, Task, Comment, Notification],
+  entities: [User, Session, Workspace, UserWorkspace, Project, Task, Comment, Notification],
   synchronize: true, 
 });
 

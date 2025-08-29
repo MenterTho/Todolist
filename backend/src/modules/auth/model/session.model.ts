@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
-import { User } from "./user.model";
+import { User } from "./auth.model";
 
 @Entity()
 @Index("idx_session_user", ["userId"])

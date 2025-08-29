@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, Index } from "typeorm";
 import { Task } from "../../task/model/task.model";
-import { User } from "../../auth/model/user.model";
+import { User } from "../../auth/model/auth.model";
 
 @Entity()
 @Index("idx_comment_task", ["taskId"])
