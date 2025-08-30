@@ -19,7 +19,7 @@ export class AuthService {
     this.sessionRepository = new SessionRepository();
   }
 
-  async register(data: RegisterDto) {
+  async register(data: RegisterDto, file?: Express.Multer.File) {
     const existingEmail = await this.userRepository.findByEmail(data.email);
     if (existingEmail) {
       throw new Error("Email already exists");
@@ -32,8 +32,22 @@ export class AuthService {
       }
     }
 
-    let avatarUrl = data.avatarUrl;
-    if (data.avatarUrl && data.avatarUrl.startsWith("data:image")) {
+    let avatarUrl: string | undefined;
+
+    // Case 1: File upload
+    if (file) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString("base64")}`, {
+          folder: "todolist/avatars",
+          resource_type: "image",
+        });
+        avatarUrl = uploadResult.secure_url;
+      } catch (error) {
+        throw new Error("Failed to upload avatar to Cloudinary");
+      }
+    }
+    // Case 2: Base64 string
+    else if (data.avatarUrl && data.avatarUrl.startsWith("data:image")) {
       try {
         const uploadResult = await cloudinary.uploader.upload(data.avatarUrl, {
           folder: "todolist/avatars",
@@ -43,6 +57,15 @@ export class AuthService {
       } catch (error) {
         throw new Error("Failed to upload avatar to Cloudinary");
       }
+    }
+    // Case 3: URL web
+    else if (data.avatarUrl) {
+      // Validate URL
+      const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/;
+      if (!urlRegex.test(data.avatarUrl)) {
+        throw new Error("Invalid avatar URL format");
+      }
+      avatarUrl = data.avatarUrl;
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -102,7 +125,7 @@ export class AuthService {
     );
 
     const session = await this.sessionRepository.save({
-      userId: user.id,
+      userId: user.id,  
       refreshToken,
       isActive: true,
       createdAt: new Date(),

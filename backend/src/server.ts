@@ -1,10 +1,11 @@
 import express, { Router } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
-import { initDB } from "./common/config/db";
-import { configureCloudinary } from "./common/config/cloudinary";
+import morgan from "morgan";
+import { initDB } from "./common/config/db.config";
+import { configureCloudinary } from "./common/config/cloudinary.config";
 import { AuthModule } from "./modules/auth/auth.module";
+// import { UserModule } from "./modules/user/user.module";
 
 dotenv.config();
 
@@ -13,16 +14,7 @@ const configureApp = (app: express.Application) => {
   
   app.use(cors());
   app.use(express.json());
-  app.use("/api/auth/login", rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 5,
-    message: { success: false, message: "Too many login attempts, please try again later" },
-  }));
-  app.use("/api/auth/forgot-password", rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 3,
-    message: { success: false, message: "Too many password reset requests, please try again later" },
-  }));
+  app.use(morgan('combined'));
   app.use("/api", router);
 
   const modules = [AuthModule];

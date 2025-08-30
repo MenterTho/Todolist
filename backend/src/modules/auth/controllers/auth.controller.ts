@@ -21,13 +21,14 @@ export class AuthController {
           errors: errors.map(e => e.toString()),
         });
       }
-      const user = await this.authService.register(dto);
+      const user = await this.authService.register(dto, req.file);
       res.status(201).json({
         success: true,
         message: "User registered successfully",
         data: user,
       });
     } catch (error) {
+      console.error("Register error:", error);
       if (error instanceof Error) {
         res.status(400).json({
           success: false,

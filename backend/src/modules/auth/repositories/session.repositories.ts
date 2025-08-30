@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { AppDataSource } from "../../../common/config/db";
+import { AppDataSource } from "../../../common/config/db.config";
 import { Session } from "../model/session.model";
 export class SessionRepository {
   private repository: Repository<Session>;

@@ -1,5 +1,5 @@
 import { Repository, FindOptionsWhere } from "typeorm";
-import { AppDataSource } from "../../../common/config/db";
+import { AppDataSource } from "../../../common/config/db.config";
 import { User } from "../model/auth.model";
 export class UserRepository {
   private repository: Repository<User>;

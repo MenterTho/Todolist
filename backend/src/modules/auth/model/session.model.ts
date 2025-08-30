@@ -1,9 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
 import { User } from "./auth.model";
-
 @Entity()
 @Index("idx_session_user", ["userId"])
-@Index("idx_session_token", ["token"])
+@Index("idx_session_refresh_token", ["refreshToken"])
 export class Session {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -12,10 +11,7 @@ export class Session {
   userId!: number;
 
   @Column({ length: 255 })
-  token!: string;
-
-  @Column({ length: 255, nullable: true })
-  refreshToken?: string;
+  refreshToken!: string;
 
   @Column({ type: "timestamp" })
   expiresAt!: Date;
