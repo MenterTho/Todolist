@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import { initDB } from "./common/config/db.config";
 import { configureCloudinary } from "./common/config/cloudinary.config";
 import { AuthModule } from "./modules/auth/auth.module";
@@ -11,14 +12,18 @@ dotenv.config();
 
 const configureApp = (app: express.Application) => {
   const router = Router();
-  
-  app.use(cors());
+
+  app.use(cors({
+    origin: "http://localhost:3000", 
+    credentials: true, // Cho phép gửi cookie
+  }));
   app.use(express.json());
+  app.use(cookieParser()); 
   app.use(morgan('combined'));
   app.use("/api", router);
 
   const modules = [AuthModule];
-  modules.forEach(module => module.register(router));
+  modules.forEach(module => module.auth(router));
 };
 
 const startServer = async () => {
@@ -29,10 +34,10 @@ const startServer = async () => {
     }
     configureCloudinary();
     await initDB();
-    
+
     const app = express();
     configureApp(app);
-    
+
     app.listen(3001, () => {
       console.log("Server running on port 3001");
     });

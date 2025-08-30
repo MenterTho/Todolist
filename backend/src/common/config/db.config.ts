@@ -8,14 +8,13 @@ import { Project } from "../../modules/project/model/project.model";
 import { Task } from "../../modules/task/model/task.model";
 import { Comment } from "../../modules/comment/model/comment.model";
 import { Notification } from "../../modules/notification/models/notification.model";
-
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: process.env.DB_HOST || "localhost",
+  host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || "5432"),
-  username: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASS || "tuantho123",
-  database: process.env.DB_NAME || "todolist",
+  username: process.env.DB_USER,
+  password: process.env.DB_PASS || "",
+  database: process.env.DB_NAME,
   entities: [User, Session, Workspace, UserWorkspace, Project, Task, Comment, Notification],
   synchronize: true, 
 });

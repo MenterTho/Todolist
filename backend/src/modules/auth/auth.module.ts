@@ -4,7 +4,7 @@ import authRoutes from "./routes/auth.route";
 
 export const AuthModule = {
   controllers: [AuthController],
-  register: (router: Router) => {
+  auth: (router: Router) => {
     router.use("/auth", authRoutes);
   },
 };

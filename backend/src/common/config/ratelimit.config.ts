@@ -11,3 +11,8 @@ export const forgotPasswordRateLimiter = rateLimit({
   max: 3,
   message: { success: false, message: "Too many password reset requests, please try again later" },
 });
+export const refreshTokenRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, message: "Too many refresh token attempts, please try again later" },
+});

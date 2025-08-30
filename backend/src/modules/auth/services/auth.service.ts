@@ -34,7 +34,6 @@ export class AuthService {
 
     let avatarUrl: string | undefined;
 
-    // Case 1: File upload
     if (file) {
       try {
         const uploadResult = await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString("base64")}`, {
@@ -45,9 +44,7 @@ export class AuthService {
       } catch (error) {
         throw new Error("Failed to upload avatar to Cloudinary");
       }
-    }
-    // Case 2: Base64 string
-    else if (data.avatarUrl && data.avatarUrl.startsWith("data:image")) {
+    } else if (data.avatarUrl && data.avatarUrl.startsWith("data:image")) {
       try {
         const uploadResult = await cloudinary.uploader.upload(data.avatarUrl, {
           folder: "todolist/avatars",
@@ -57,10 +54,7 @@ export class AuthService {
       } catch (error) {
         throw new Error("Failed to upload avatar to Cloudinary");
       }
-    }
-    // Case 3: URL web
-    else if (data.avatarUrl) {
-      // Validate URL
+    } else if (data.avatarUrl) {
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/;
       if (!urlRegex.test(data.avatarUrl)) {
         throw new Error("Invalid avatar URL format");
@@ -123,9 +117,10 @@ export class AuthService {
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
+    const csrfToken = uuidv4(); // Tạo CSRF token
 
     const session = await this.sessionRepository.save({
-      userId: user.id,  
+      userId: user.id,
       refreshToken,
       isActive: true,
       createdAt: new Date(),
@@ -134,7 +129,46 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken,
+      csrfToken, // Trả về CSRF token trong body
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      refreshToken, // Sẽ đặt vào cookie trong controller
+    };
+  }
+
+  async refreshToken(refreshToken: string, csrfToken: string, providedCsrfToken: string) {
+    if (csrfToken !== providedCsrfToken) {
+      throw new Error("Invalid CSRF token");
+    }
+
+    const session = await this.sessionRepository.findByRefreshToken(refreshToken);
+    if (!session || !session.isActive || session.expiresAt < new Date()) {
+      throw new Error("Invalid or expired refresh token");
+    }
+
+    const user = await this.userRepository.findById(session.userId);
+    if (!user || !user.isActive) {
+      throw new Error("User not found or inactive");
+    }
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT configuration is missing");
+    }
+
+    const accessToken = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+    const newCsrfToken = uuidv4(); // Tạo CSRF token mới
+
+    return {
+      accessToken,
+      csrfToken: newCsrfToken,
       user: {
         id: user.id,
         email: user.email,
@@ -144,6 +178,20 @@ export class AuthService {
     };
   }
 
+  async logout(refreshToken: string, csrfToken: string, providedCsrfToken: string) {
+    if (csrfToken !== providedCsrfToken) {
+      throw new Error("Invalid CSRF token");
+    }
+
+    const session = await this.sessionRepository.findByRefreshToken(refreshToken);
+    if (!session || !session.isActive) {
+      throw new Error("Invalid or already logged out session");
+    }
+
+    await this.sessionRepository.deactivateSession(session.id);
+    return { message: "Logged out successfully" };
+  }
+
   async forgotPassword(data: ForgotPasswordDto) {
     const user = await this.userRepository.findByEmail(data.email);
     if (!user) {
@@ -151,7 +199,7 @@ export class AuthService {
     }
 
     const resetToken = uuidv4();
-    const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+    const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000);
 
     await this.userRepository.updateResetToken(user.id, resetToken, resetTokenExpiresAt);
 
@@ -189,7 +237,7 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    await this.userRepository.update(user.id, { 
+    await this.userRepository.update(user.id, {
       password: hashedPassword,
       resetToken: undefined,
       resetTokenExpiresAt: undefined,

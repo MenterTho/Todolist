@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { plainToInstance  } from "class-transformer";
+import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
 import { AuthService } from "../services/auth.service";
 import { RegisterDto } from "../dtos/register.dto";
@@ -55,10 +55,92 @@ export class AuthController {
         });
       }
       const result = await this.authService.login(dto);
+      // Đặt refreshToken vào cookie HTTP-only
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Chỉ dùng Secure trong production (HTTPS)
+        sameSite: "strict", // Chống CSRF
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+      });
       res.status(200).json({
         success: true,
         message: "Login successful",
-        data: result,
+        data: {
+          accessToken: result.accessToken,
+          csrfToken: result.csrfToken, // Trả về CSRF token
+          user: result.user,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "An unexpected error occurred",
+        });
+      }
+    }
+  }
+
+  async refreshToken(req: Request, res: Response) {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      const csrfToken = req.body.csrfToken;
+      if (!refreshToken || !csrfToken) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing refresh token or CSRF token",
+        });
+      }
+      const result = await this.authService.refreshToken(refreshToken, csrfToken, req.body.csrfToken);
+      res.status(200).json({
+        success: true,
+        message: "Token refreshed successfully",
+        data: {
+          accessToken: result.accessToken,
+          csrfToken: result.csrfToken, // Trả về CSRF token mới
+          user: result.user,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "An unexpected error occurred",
+        });
+      }
+    }
+  }
+
+  async logout(req: Request, res: Response) {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      const csrfToken = req.body.csrfToken;
+      if (!refreshToken || !csrfToken) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing refresh token or CSRF token",
+        });
+      }
+      const result = await this.authService.logout(refreshToken, csrfToken, req.body.csrfToken);
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: null,
       });
     } catch (error) {
       if (error instanceof Error) {
