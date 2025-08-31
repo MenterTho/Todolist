@@ -15,9 +15,12 @@ export class SessionRepository {
   async findByRefreshToken(refreshToken: string): Promise<Session | null> {
     return await this.repository.findOne({ where: { refreshToken, isActive: true } });
   }
-
+  async findByCriteria(criteria: Partial<Session>): Promise<Session[]> {
+      return await this.repository.find({ where: criteria });
+  }
   async deactivateSession(id: number): Promise<boolean> {
     const result = await this.repository.update({ id, isActive: true }, { isActive: false });
     return result.affected ? result.affected > 0 : false;
   }
+  
 }

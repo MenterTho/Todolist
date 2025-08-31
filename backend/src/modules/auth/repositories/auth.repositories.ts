@@ -40,7 +40,19 @@ export class UserRepository {
     if (options.role) where.role = options.role;
     return await this.repository.find({ where });
   }
-
+    async findAndCount(options: { 
+        where: FindOptionsWhere<User> | FindOptionsWhere<User>[];
+        skip?: number;
+        take?: number;
+        select?: (keyof User)[];
+      }): Promise<[User[], number]> {
+        return await this.repository.findAndCount({
+          where: options.where,
+          skip: options.skip,
+          take: options.take,
+          select: options.select,
+        });
+      }
   // Read: Find by multiple criteria
   async findByCriteria(criteria: Partial<User>): Promise<User[]> {
     return await this.repository.find({ 
