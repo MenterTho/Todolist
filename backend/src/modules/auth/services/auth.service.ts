@@ -117,7 +117,7 @@ export class AuthService {
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
-    const csrfToken = uuidv4(); // Tạo CSRF token
+    const csrfToken = uuidv4();
 
     const session = await this.sessionRepository.save({
       userId: user.id,
@@ -129,14 +129,14 @@ export class AuthService {
 
     return {
       accessToken,
-      csrfToken, // Trả về CSRF token trong body
+      csrfToken, 
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
       },
-      refreshToken, // Sẽ đặt vào cookie trong controller
+      refreshToken, 
     };
   }
 
@@ -164,7 +164,7 @@ export class AuthService {
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
-    const newCsrfToken = uuidv4(); // Tạo CSRF token mới
+    const newCsrfToken = uuidv4(); 
 
     return {
       accessToken,

@@ -1,29 +1,27 @@
 import express, { Router } from "express";
 import dotenv from "dotenv";
+dotenv.config();
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { initDB } from "./common/config/db.config";
 import { configureCloudinary } from "./common/config/cloudinary.config";
 import { AuthModule } from "./modules/auth/auth.module";
-// import { UserModule } from "./modules/user/user.module";
-
-dotenv.config();
-
+import { UserModule } from "./modules/user/user.module";
 const configureApp = (app: express.Application) => {
   const router = Router();
 
   app.use(cors({
     origin: "http://localhost:3000", 
-    credentials: true, // Cho phép gửi cookie
+    credentials: true, 
   }));
   app.use(express.json());
   app.use(cookieParser()); 
   app.use(morgan('combined'));
   app.use("/api", router);
 
-  const modules = [AuthModule];
-  modules.forEach(module => module.auth(router));
+  const modules = [AuthModule,UserModule];
+  modules.forEach(module => module.routes(router));
 };
 
 const startServer = async () => {

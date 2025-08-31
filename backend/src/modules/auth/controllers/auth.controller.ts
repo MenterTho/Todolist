@@ -55,19 +55,18 @@ export class AuthController {
         });
       }
       const result = await this.authService.login(dto);
-      // Đặt refreshToken vào cookie HTTP-only
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Chỉ dùng Secure trong production (HTTPS)
-        sameSite: "strict", // Chống CSRF
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict", 
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       res.status(200).json({
         success: true,
         message: "Login successful",
         data: {
           accessToken: result.accessToken,
-          csrfToken: result.csrfToken, // Trả về CSRF token
+          csrfToken: result.csrfToken, 
           user: result.user,
         },
       });
@@ -102,7 +101,7 @@ export class AuthController {
         message: "Token refreshed successfully",
         data: {
           accessToken: result.accessToken,
-          csrfToken: result.csrfToken, // Trả về CSRF token mới
+          csrfToken: result.csrfToken, 
           user: result.user,
         },
       });
