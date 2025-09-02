@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
 import { User } from "../../auth/model/auth.model";
 import { Project } from "../../project/model/project.model";
-import { UserWorkspace } from "../../user_workspace/model/user_workspace";
+import { UserWorkspace } from "../../user_workspace/model/user_workspace.model";
 
 @Entity()
 @Index("idx_workspace_owner", ["ownerId"])

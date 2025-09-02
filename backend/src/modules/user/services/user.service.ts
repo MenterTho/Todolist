@@ -3,7 +3,7 @@ import { UserRepository } from "../../auth/repositories/auth.repositories";
 import { SessionRepository } from "../../auth/repositories/session.repositories";
 import { Like, FindOptionsWhere } from "typeorm";
 import { UpdateRoleDto } from "../dtos/updateRole.dto";
-import { UpdateProfileDto } from "../dtos/updatepfofile.dto";
+import { UpdateProfileDto } from "../dtos/updateprofile.dto";
 import { User } from "../../auth/model/auth.model";
 
 export class UserService {

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
 import { UserService } from "../services/user.service";
-import { UpdateProfileDto } from "../dtos/updatepfofile.dto";
+import { UpdateProfileDto } from "../dtos/updateprofile.dto";
 import { UpdateRoleDto } from "../dtos/updateRole.dto";
 
 export class UserController {

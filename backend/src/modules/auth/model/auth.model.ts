@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
 import { Task } from "../../task/model/task.model";
-import { UserWorkspace } from "../../user_workspace/model/user_workspace";
+import { UserWorkspace } from "../../user_workspace/model/user_workspace.model";
 import { Comment } from "../../comment/model/comment.model";
 import { Notification } from "../../notification/models/notification.model";
 import { Session } from "./session.model";
