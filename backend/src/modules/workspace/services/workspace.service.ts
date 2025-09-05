@@ -34,7 +34,7 @@ export class WorkspaceService {
     await this.userWorkspaceRepository.save({
       userId,
       workspaceId: workspace.id,
-      role: "admin",
+      role: "owner",
       joinedAt: new Date(),
     });
 
@@ -80,7 +80,7 @@ export class WorkspaceService {
       throw new Error("Không tìm thấy hoặc workspace đã bị xóa");
     }
     const userWorkspace = await this.userWorkspaceRepository.findByUserAndWorkspace(userId, id);
-    if (workspace.ownerId !== userId && (!userWorkspace || userWorkspace.role !== "admin")) {
+    if (workspace.ownerId !== userId && (!userWorkspace || userWorkspace.role !== "owner")) {
       throw new Error("Người dùng không có quyền xóa không gian làm việc này");
     }
 

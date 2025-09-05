@@ -12,7 +12,7 @@ export class UserWorkspace {
   @PrimaryColumn()
   workspaceId!: number;
 
-  @Column({ default: "member" })
+  @Column()
   role!: string;
 
   @ManyToOne(() => User, user => user.userWorkspaces)

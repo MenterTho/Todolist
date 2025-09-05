@@ -19,9 +19,10 @@ export class UserWorkspaceService {
 
   async inviteUser(workspaceId: number, dto: InviteUserDto, adminId: number): Promise<{ message: string }> {
     const userWorkspace = await this.userWorkspaceRepository.findByUserAndWorkspace(adminId, workspaceId);
-    if (!userWorkspace || userWorkspace.role !== "admin") {
+    if (!userWorkspace || !["owner", "management"].includes(userWorkspace.role)) {
       throw new Error("Người dùng không có quyền mời thành viên");
     }
+    console.log("User role in workspace:", userWorkspace.role);
 
     const workspace = await this.workspaceRepository.findById(workspaceId);
     if (!workspace || workspace.isDeleted) {
@@ -50,7 +51,7 @@ export class UserWorkspaceService {
 
   async updateMemberRole(workspaceId: number, dto: UpdateMemberRoleDto, adminId: number): Promise<UserWorkspace> {
     const adminWorkspace = await this.userWorkspaceRepository.findByUserAndWorkspace(adminId, workspaceId);
-    if (!adminWorkspace || adminWorkspace.role !== "admin") {
+    if (!adminWorkspace || adminWorkspace.role !== "owner") {
       throw new Error("Người dùng không có quyền cập nhật vai trò");
     }
 
@@ -65,7 +66,7 @@ export class UserWorkspaceService {
 
   async removeMember(workspaceId: number, memberId: number, adminId: number): Promise<{ message: string }> {
     const adminWorkspace = await this.userWorkspaceRepository.findByUserAndWorkspace(adminId, workspaceId);
-    if (!adminWorkspace || adminWorkspace.role !== "admin") {
+    if (!adminWorkspace || !["owner", "management"].includes(adminWorkspace.role)) {
       throw new Error("Người dùng không có quyền xóa thành viên");
     }
 

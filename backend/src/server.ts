@@ -9,6 +9,8 @@ import { configureCloudinary } from "./common/config/cloudinary.config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/user.module";
 import { WorkspaceModule } from "./modules/workspace/workspace.module";
+import { UserWorkspaceModule } from "./modules/user_workspace/user_workspace.module";
+
 
 const configureApp = (app: express.Application) => {
   const router = Router();
@@ -22,7 +24,7 @@ const configureApp = (app: express.Application) => {
   app.use(morgan('combined'));
   app.use("/api", router);
 
-  const modules = [AuthModule,UserModule,WorkspaceModule];
+  const modules = [AuthModule,UserModule,WorkspaceModule,UserWorkspaceModule];
   modules.forEach(module => module.routes(router));
 };
 
