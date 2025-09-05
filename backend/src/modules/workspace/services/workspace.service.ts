@@ -75,8 +75,12 @@ export class WorkspaceService {
   }
 
   async delete(id: number, userId: number): Promise<{ message: string }> {
+    const workspace = await this.workspaceRepository.findById(id);
+    if (!workspace) {
+      throw new Error("Không tìm thấy hoặc workspace đã bị xóa");
+    }
     const userWorkspace = await this.userWorkspaceRepository.findByUserAndWorkspace(userId, id);
-    if (!userWorkspace || userWorkspace.role !== "admin") {
+    if (workspace.ownerId !== userId && (!userWorkspace || userWorkspace.role !== "admin")) {
       throw new Error("Người dùng không có quyền xóa không gian làm việc này");
     }
 
