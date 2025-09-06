@@ -10,6 +10,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/user.module";
 import { WorkspaceModule } from "./modules/workspace/workspace.module";
 import { UserWorkspaceModule } from "./modules/user_workspace/user_workspace.module";
+import { ProjectModule } from "./modules/project/project.module";
 
 
 const configureApp = (app: express.Application) => {
@@ -24,7 +25,7 @@ const configureApp = (app: express.Application) => {
   app.use(morgan('combined'));
   app.use("/api", router);
 
-  const modules = [AuthModule,UserModule,WorkspaceModule,UserWorkspaceModule];
+  const modules = [AuthModule,UserModule,WorkspaceModule,UserWorkspaceModule,ProjectModule];
   modules.forEach(module => module.routes(router));
 };
 
