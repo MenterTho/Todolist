@@ -26,7 +26,7 @@ export class ProjectRepository {
   async findByWorkspace(workspaceId: number): Promise<Project[]> {
     return await this.repository.find({
       where: { workspaceId, isDeleted: false },
-      relations: ["workspace", "workspace.owner", "tasks"],
+      relations: ["workspace", "workspace.userWorkspaces","workspace.userWorkspaces.user", "tasks"],
     });
   }
 

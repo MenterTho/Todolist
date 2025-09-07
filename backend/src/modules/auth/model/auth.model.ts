@@ -4,7 +4,7 @@ import { UserWorkspace } from "../../user_workspace/model/user_workspace.model";
 import { Comment } from "../../comment/model/comment.model";
 import { Notification } from "../../notification/models/notification.model";
 import { Session } from "./session.model";
-
+import { Exclude } from "class-transformer";
 @Entity()
 @Index("idx_user_email", ["email"])
 @Index("idx_user_phone", ["phoneNumber"])
@@ -17,6 +17,7 @@ export class User {
   @Column({ unique: true, length: 255 })
   email!: string;
 
+  @Exclude() //hide
   @Column({ length: 255 })
   password!: string;
 
