@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from "typeorm";
 import { Task } from "../../task/model/task.model";
 import { User } from "../../auth/model/auth.model";
 
@@ -9,7 +9,7 @@ export class Comment {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ type: "text" })
   content!: string;
 
   @Column()
@@ -21,12 +21,21 @@ export class Comment {
   @Column({ nullable: true })
   parentId?: number;
 
-  @ManyToOne(() => Task, task => task.comments)
+  @Column({ default: false })
+  isDeleted!: boolean;
+
+  @CreateDateColumn({ type: "timestamp" })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: "timestamp" })
+  updatedAt!: Date;
+
+  @ManyToOne(() => Task, task => task.comments, { onDelete: "CASCADE" })
   task!: Task;
 
   @ManyToOne(() => User, user => user.comments)
   author!: User;
 
-  @CreateDateColumn({ type: "timestamp" })
-  createdAt!: Date;
+  @ManyToOne(() => Comment, { nullable: true })
+  parent?: Comment;
 }
