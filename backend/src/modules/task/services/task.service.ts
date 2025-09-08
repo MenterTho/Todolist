@@ -86,12 +86,14 @@ export class TaskService {
     if (!task || task.isDeleted) {
       throw new Error("Không tìm thấy hoặc nhiệm vụ đã bị xóa");
     }
-
     const userWorkspace = await this.taskRepository.findUserWorkspace(userId, task.project.workspaceId);
-    if (!userWorkspace || !["owner","management"].includes(userWorkspace.role)) {
-      throw new Error("Người dùng không có quyền cập nhật nhiệm vụ này");
+    if (!userWorkspace) {
+      throw new Error("Người dùng không có trong task này");
     }
-    if (userWorkspace.role === "member" && task.assigneeId === userId) {
+    if (userWorkspace.role === "member") {
+      if (task.assigneeId !== userId) {
+        throw new Error("Bạn không được phép cập nhật nhiệm vụ này");
+      }
       if (dto.status) {
         task.status = dto.status;
         task.updatedAt = new Date();
@@ -99,6 +101,10 @@ export class TaskService {
       }
       throw new Error("Bạn chỉ có thể cập nhật trạng thái của nhiệm vụ này");
     }
+    if (!["owner", "management"].includes(userWorkspace.role)) {
+       throw new Error("Người dùng không có quyền cập nhật nhiệm vụ này");
+    }
+    
     if (dto.assigneeId) {
       const assignee = await this.userRepository.findById(dto.assigneeId);
       if (!assignee || !assignee.isActive || assignee.isDeleted) {
