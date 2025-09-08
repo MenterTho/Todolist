@@ -12,6 +12,8 @@ import { WorkspaceModule } from "./modules/workspace/workspace.module";
 import { UserWorkspaceModule } from "./modules/user_workspace/user_workspace.module";
 import { ProjectModule } from "./modules/project/project.module";
 import { TaskModule } from "./modules/task/task.module";
+import { CommentModule } from "./modules/comment/comment.module";
+
 
 
 
@@ -27,7 +29,7 @@ const configureApp = (app: express.Application) => {
   app.use(morgan('combined'));
   app.use("/api", router);
 
-  const modules = [AuthModule,UserModule,WorkspaceModule,UserWorkspaceModule,ProjectModule,TaskModule];
+  const modules = [AuthModule,UserModule,WorkspaceModule,UserWorkspaceModule,ProjectModule,TaskModule,CommentModule];
   modules.forEach(module => module.routes(router));
 };
 
