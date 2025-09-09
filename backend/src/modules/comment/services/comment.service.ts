@@ -15,6 +15,9 @@ export class CommentService {
     if (!task || task.isDeleted) {
       throw new Error("Không tìm thấy hoặc nhiệm vụ đã bị xóa");
     }
+    if (!task.project || !task.project.workspace) {
+      throw new Error("Nhiệm vụ không thuộc dự án hoặc không gian làm việc hợp lệ");
+    }
 
     const userWorkspace = await this.commentRepository.findUserWorkspace(userId, task.project.workspaceId);
     if (!userWorkspace) {
@@ -46,6 +49,9 @@ export class CommentService {
     if (!comment || comment.isDeleted) {
       throw new Error("Không tìm thấy hoặc bình luận đã bị xóa");
     }
+    if (!comment.task.project || !comment.task.project.workspace) {
+      throw new Error("Bình luận không thuộc dự án hoặc không gian làm việc hợp lệ");
+    }
 
     const userWorkspace = await this.commentRepository.findUserWorkspace(userId, comment.task.project.workspaceId);
     if (!userWorkspace) {
@@ -59,6 +65,9 @@ export class CommentService {
     const task = await this.commentRepository.findTask(taskId);
     if (!task || task.isDeleted) {
       throw new Error("Không tìm thấy hoặc nhiệm vụ đã bị xóa");
+    }
+    if (!task.project || !task.project.workspace) {
+      throw new Error("Nhiệm vụ không thuộc dự án hoặc không gian làm việc hợp lệ");
     }
 
     const userWorkspace = await this.commentRepository.findUserWorkspace(userId, task.project.workspaceId);
@@ -74,6 +83,9 @@ export class CommentService {
     const comment = await this.commentRepository.findById(id);
     if (!comment || comment.isDeleted) {
       throw new Error("Không tìm thấy hoặc bình luận đã bị xóa");
+    }
+    if (!comment.task.project || !comment.task.project.workspace) {
+      throw new Error("Bình luận không thuộc dự án hoặc không gian làm việc hợp lệ");
     }
 
     if (comment.authorId !== userId) {
@@ -101,6 +113,9 @@ export class CommentService {
     const comment = await this.commentRepository.findById(id);
     if (!comment || comment.isDeleted) {
       throw new Error("Không tìm thấy hoặc bình luận đã bị xóa");
+    }
+    if (!comment.task.project || !comment.task.project.workspace) {
+      throw new Error("Bình luận không thuộc dự án hoặc không gian làm việc hợp lệ");
     }
 
     const userWorkspace = await this.commentRepository.findUserWorkspace(userId, comment.task.project.workspaceId);

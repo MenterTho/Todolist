@@ -14,9 +14,6 @@ import { ProjectModule } from "./modules/project/project.module";
 import { TaskModule } from "./modules/task/task.module";
 import { CommentModule } from "./modules/comment/comment.module";
 
-
-
-
 const configureApp = (app: express.Application) => {
   const router = Router();
 

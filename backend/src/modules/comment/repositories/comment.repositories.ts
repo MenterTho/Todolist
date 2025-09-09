@@ -50,8 +50,11 @@ export class CommentRepository {
   }
 
   async findTask(taskId: number): Promise<Task | null> {
-    return await this.taskRepository.findOne({ where: { id: taskId, isDeleted: false } });
-  }
+  return await this.taskRepository.findOne({
+    where: { id: taskId, isDeleted: false },
+    relations: ["project", "project.workspace"], 
+  });
+}
 
   async findCommentById(id: number): Promise<Comment | null> {
     return await this.repository.findOne({ where: { id, isDeleted: false } });
