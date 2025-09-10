@@ -14,13 +14,16 @@ export class UserWorkspace {
 
   @Column()
   role!: string;
+  
+  @Column({ default: false })
+  isDeleted!: boolean;
 
   @ManyToOne(() => User, user => user.userWorkspaces)
   user!: User;
 
   @ManyToOne(() => Workspace, workspace => workspace.userWorkspaces)
   workspace!: Workspace;
-
+  
   @CreateDateColumn({ type: "timestamp" })
   joinedAt!: Date;
 }

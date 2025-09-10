@@ -6,6 +6,7 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { initDB } from "./common/config/db.config";
 import { configureCloudinary } from "./common/config/cloudinary.config";
+import { initializeFirebase } from "./common/config/firebase.config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/user.module";
 import { WorkspaceModule } from "./modules/workspace/workspace.module";
@@ -13,6 +14,7 @@ import { UserWorkspaceModule } from "./modules/user_workspace/user_workspace.mod
 import { ProjectModule } from "./modules/project/project.module";
 import { TaskModule } from "./modules/task/task.module";
 import { CommentModule } from "./modules/comment/comment.module";
+import { NotificationModule } from "./modules/notification/notification.module";
 
 const configureApp = (app: express.Application) => {
   const router = Router();
@@ -26,17 +28,19 @@ const configureApp = (app: express.Application) => {
   app.use(morgan('combined'));
   app.use("/api", router);
 
-  const modules = [AuthModule,UserModule,WorkspaceModule,UserWorkspaceModule,ProjectModule,TaskModule,CommentModule];
+  const modules = [AuthModule,UserModule,WorkspaceModule,UserWorkspaceModule,ProjectModule,TaskModule,CommentModule,NotificationModule];
   modules.forEach(module => module.routes(router));
 };
 
 const startServer = async () => {
   try {
     if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET || !process.env.EMAIL_USER || !process.env.EMAIL_PASS ||
-        !process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      !process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET
+      || !process.env.CLOUDINARY_CLOUD_NAME ||!process.env.CLOUDINARY_API_KEY ||!process.env.CLOUDINARY_API_SECRET) {
       throw new Error("Missing required environment variables");
     }
     configureCloudinary();
+    initializeFirebase();
     await initDB();
 
     const app = express();
