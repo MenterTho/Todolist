@@ -39,8 +39,8 @@ const startServer = async () => {
       || !process.env.CLOUDINARY_CLOUD_NAME ||!process.env.CLOUDINARY_API_KEY ||!process.env.CLOUDINARY_API_SECRET) {
       throw new Error("Missing required environment variables");
     }
-    configureCloudinary();
     initializeFirebase();
+    configureCloudinary();
     await initDB();
 
     const app = express();

@@ -2,7 +2,7 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../../../common/config/db.config";
 import { CreateNotificationDto } from "../dtos/createNotification.dto";
 import { Notification, NotificationType } from "../models/notification.model";
-import { messaging } from "../../../common/config/firebase.config";
+import { getMessaging } from "../../../common/config/firebase.config";
 import { User } from "../../auth/model/auth.model";
 import { NotificationRepository } from "../repositories/notification.repositories";
 
@@ -76,6 +76,7 @@ export class NotificationService {
       };
 
       try {
+        const messaging = getMessaging();
         await messaging.send(message);
         console.log(`Đã gửi thông báo đẩy đến user ${dto.recipientId}`);
       } catch (error: any) {
