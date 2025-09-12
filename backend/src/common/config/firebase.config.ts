@@ -23,7 +23,7 @@ export const initializeFirebase = () => {
       credential: admin.credential.cert(serviceAccount),
     });
     console.log("Firebase Admin SDK khởi tạo thành công");
-    _messaging = admin.messaging(); // Khởi tạo messaging sau khi app đã được tạo
+    _messaging = admin.messaging();
   } catch (error) {
     console.error("Lỗi khi khởi tạo Firebase Admin SDK:", error);
     throw error;

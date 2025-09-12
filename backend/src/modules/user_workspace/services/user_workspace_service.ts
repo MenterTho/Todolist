@@ -4,17 +4,20 @@ import { InviteUserDto } from "../dtos/inviteUser.dto";
 import { UpdateMemberRoleDto } from "../dtos/updateRole.dto";
 import { UserWorkspace } from "../model/user_workspace.model";
 import { UserWorkspaceRepository } from "../repositories/user_workspace.repositories";
-
+import { NotificationService } from "../../notification/services/notification.service";
+import { NotificationType } from "../../notification/models/notification.model";
 
 export class UserWorkspaceService {
   private userWorkspaceRepository: UserWorkspaceRepository;
   private workspaceRepository: WorkspaceRepository;
   private userRepository: UserRepository;
-
+  private notificationService: NotificationService;  
+  
   constructor() {
     this.userWorkspaceRepository = new UserWorkspaceRepository();
     this.workspaceRepository = new WorkspaceRepository();
     this.userRepository = new UserRepository();
+    this.notificationService = new NotificationService();
   }
 
   async inviteUser(workspaceId: number, dto: InviteUserDto, adminId: number): Promise<{ message: string }> {
