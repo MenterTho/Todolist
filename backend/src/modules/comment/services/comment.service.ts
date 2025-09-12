@@ -18,12 +18,13 @@ export class CommentService {
     if (!task.project || !task.project.workspace) {
       throw new Error("Nhiệm vụ không thuộc dự án hoặc không gian làm việc hợp lệ");
     }
-
+    if (task.assigneeId !== userId && task.creatorId !== userId) {
+      throw new Error("Chỉ người được giao hoặc người tạo nhiệm vụ mới có thể bình luận");
+    }
     const userWorkspace = await this.commentRepository.findUserWorkspace(userId, task.project.workspaceId);
     if (!userWorkspace) {
       throw new Error("Người dùng không phải là thành viên của không gian làm việc này");
     }
-
     if (dto.parentId) {
       const parentComment = await this.commentRepository.findCommentById(dto.parentId);
       if (!parentComment || parentComment.taskId !== taskId) {

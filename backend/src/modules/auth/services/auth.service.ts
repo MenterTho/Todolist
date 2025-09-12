@@ -7,6 +7,7 @@ import { RegisterDto } from "../dtos/register.dto";
 import { LoginDto } from "../dtos/login.dto";
 import { ForgotPasswordDto } from "../dtos/forgotpassword.dto";
 import { ResetPasswordDto } from "../dtos/resetpassword.dto";
+import { UpdateFcmTokenDto } from "../dtos/updatefcmtoken.dto";
 import { UserRepository } from "../repositories/auth.repositories";
 import { SessionRepository } from "../repositories/session.repositories";
 
@@ -244,5 +245,18 @@ export class AuthService {
     });
 
     return { message: "Password reset successfully" };
+  }
+  async updateFcmToken(userId: number, dto: UpdateFcmTokenDto): Promise<{ message: string }> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error("Không tìm thấy người dùng");
+    }
+
+    const success = await this.userRepository.updateFcmToken(userId, dto.fcmToken);
+    if (!success) {
+      throw new Error("Cập nhật fcmToken thất bại");
+    }
+
+    return { message: "Cập nhật fcmToken thành công" };
   }
 }

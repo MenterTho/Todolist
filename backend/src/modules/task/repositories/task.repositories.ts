@@ -20,18 +20,30 @@ export class TaskRepository {
   }
 
   async findById(id: number): Promise<Task | null> {
-    return await this.repository.findOne({
-      where: { id, isDeleted: false },
-      relations: ["project", "project.workspace", "assignee", "creator", "comments"],
-    });
+    return await this.repository
+      .createQueryBuilder("task")
+      .leftJoinAndSelect("task.comments", "comments", "comments.isDeleted = :isDeleted", { isDeleted: false })
+      .leftJoinAndSelect("task.project", "project")
+      .leftJoinAndSelect("task.assignee", "assignee")
+      .leftJoinAndSelect("task.creator", "creator")
+      .where("task.id = :id", { id })
+      .andWhere("task.isDeleted = :isDeleted", { isDeleted: false })
+      .getOne();
   }
 
   async findByProject(projectId: number): Promise<Task[]> {
-    return await this.repository.find({
-      where: { projectId, isDeleted: false },
-      relations: ["project", "project.workspace", "assignee", "creator", "comments"],
-    });
-  }
+  return await this.repository
+    .createQueryBuilder("task")
+    .leftJoinAndSelect("task.project", "project")
+    .leftJoinAndSelect("project.workspace", "workspace")
+    .leftJoinAndSelect("task.assignee", "assignee")
+    .leftJoinAndSelect("task.creator", "creator")
+    .leftJoinAndSelect("task.comments", "comments", "comments.isDeleted = false")
+    .where("task.projectId = :projectId", { projectId })
+    .andWhere("task.isDeleted = false")
+    .getMany();
+}
+
 
   async update(id: number, updates: Partial<Task>): Promise<Task | null> {
     const task = await this.findById(id);
