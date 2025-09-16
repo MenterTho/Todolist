@@ -4,12 +4,15 @@
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
+    "types": ["node", "jest", "cloudinary"],
     "outDir": "./dist",
     "rootDir": "./src",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "sourceMap": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules"]
 }
