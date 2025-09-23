@@ -24,13 +24,13 @@ export default function Navbar() {
           <div className="flex items-center">
             <div className="hidden md:ml-4 md:flex md:items-center md:space-x-4">
               <Link
-                href="#"
+                href="/login"
                 className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
               >
                 Login
               </Link>
               <Link
-                href="#"
+                href="/register"
                 className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
               >
                 Sign Up
@@ -107,9 +107,9 @@ export default function Navbar() {
             <div className="pt-4 pb-3 border-t border-gray-700">
               <div className="flex items-center px-5 space-y-3">
                 <Link
-                  href="#"
-                  className="block w-full text-center text-white bg-gray-700 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-600"
-                >
+                  href="/login"
+                    className="block w-full text-center text-white bg-gray-700 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-600"
+                  >
                   Login
                 </Link>
               </div>

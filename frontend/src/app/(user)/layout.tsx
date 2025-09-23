@@ -9,7 +9,7 @@ export default function UserLayout({ children }: { children: ReactNode }) {
       top: 0,
       behavior: "smooth",
     })
-  }, []) // Mảng dependency rỗng để chỉ chạy một lần khi component mount
+  }, []) 
 
   return (
     <div className="min-h-screen flex flex-col">
