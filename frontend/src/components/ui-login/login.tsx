@@ -1,6 +1,10 @@
 "use client";
+import { useState } from "react";
+import ForgotPasswordModal from "./forgotpassword";
 
 export default function Login() {
+  const [isForgotOpen, setForgotOpen] = useState(false);
+
   return (
     <div className="relative min-h-screen flex">
       <div className="flex flex-col sm:flex-row items-center md:items-start sm:justify-center md:justify-start flex-auto min-w-0 bg-white">
@@ -71,9 +75,13 @@ export default function Login() {
                 <label className="flex items-center text-sm text-gray-900">
                   <input type="checkbox" className="mr-2" /> Remember me
                 </label>
-                <a href="#" className="text-indigo-400 hover:text-blue-500 transition-colors duration-300">
+                <button
+                  type="button"
+                  onClick={() => setForgotOpen(true)}
+                  className="text-indigo-400 hover:text-blue-500 transition-colors duration-300"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
 
               <div>
@@ -98,6 +106,9 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Forgot password modal */}
+      <ForgotPasswordModal isOpen={isForgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }
