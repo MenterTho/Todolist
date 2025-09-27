@@ -11,7 +11,14 @@ export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('accessToken'));
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Khởi tạo false để tránh SSR
+
+  // Kiểm tra localStorage trên client
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsAuthenticated(!!localStorage.getItem('accessToken'));
+    }
+  }, []);
 
   const { data: profile, error: profileError } = useQuery<UserProfile, CustomApiError>({
     queryKey: ['userProfile'],
@@ -27,16 +34,20 @@ export function useAuth() {
     } else if (profileError) {
       setUser(null);
       setIsAuthenticated(false);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('csrfToken');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('csrfToken');
+      }
     }
   }, [profile, profileError]);
 
   const loginMutation = useMutation<LoginResponse, CustomApiError, LoginRequest>({
     mutationFn: login,
     onSuccess: (data) => {
-      localStorage.setItem('accessToken', data.data.accessToken);
-      localStorage.setItem('csrfToken', data.data.csrfToken);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('csrfToken', data.data.csrfToken);
+      }
       setUser(data.data.user);
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
       router.push('/dashboard');
@@ -64,8 +75,10 @@ export function useAuth() {
       setUser(null);
       setIsAuthenticated(false);
       queryClient.clear();
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('csrfToken');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('csrfToken');
+      }
       router.push('/login');
     },
     onError: (error: CustomApiError) => {
@@ -73,8 +86,10 @@ export function useAuth() {
       setUser(null);
       setIsAuthenticated(false);
       queryClient.clear();
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('csrfToken');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('csrfToken');
+      }
       router.push('/login');
       throw new Error(error.message);
     },
@@ -116,8 +131,10 @@ export function useAuth() {
       setUser(null);
       setIsAuthenticated(false);
       queryClient.clear();
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('csrfToken');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('csrfToken');
+      }
       router.push('/login');
     },
     onError: (error: CustomApiError) => {
@@ -125,8 +142,10 @@ export function useAuth() {
       setUser(null);
       setIsAuthenticated(false);
       queryClient.clear();
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('csrfToken');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('csrfToken');
+      }
       router.push('/login');
       throw new Error(error.message);
     },
