@@ -1,28 +1,49 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { login, logout, register, updateFcmToken } from '@/services/auth.service';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { login, logout, register, updateFcmToken, forgotPassword, resetPassword } from '@/services/auth.service';
+import { getProfile, deleteAccount } from '@/services/user.service';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { LoginRequest, RegisterRequest, LoginResponse } from '@/types/auth.type';
-import { AxiosError } from 'axios';
+import type { UserProfile } from '@/services/user.service';
+import { CustomApiError } from '@/utils/apiErrorHandler.util';
 
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [user, setUser] = useState<LoginResponse['data']['user'] | null>(
-    localStorage.getItem('accessToken')
-      ? { id: 0, email: '', name: '', role: '', avatarUrl: '' }
-      : null
-  );
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('accessToken'));
 
-  const loginMutation = useMutation({
+  const { data: profile, error: profileError } = useQuery<UserProfile, CustomApiError>({
+    queryKey: ['userProfile'],
+    queryFn: getProfile,
+    enabled: isAuthenticated,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setUser(profile);
+      setIsAuthenticated(true);
+    } else if (profileError) {
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('csrfToken');
+    }
+  }, [profile, profileError]);
+
+  const loginMutation = useMutation<LoginResponse, CustomApiError, LoginRequest>({
     mutationFn: login,
     onSuccess: (data) => {
+      localStorage.setItem('accessToken', data.data.accessToken);
+      localStorage.setItem('csrfToken', data.data.csrfToken);
       setUser(data.data.user);
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
       router.push('/dashboard');
     },
-    onError: (error: unknown) => {
-      const err = error as AxiosError<{ message?: string }>;
-      throw new Error(err.response?.data?.message || 'Đăng nhập thất bại');
+    onError: (error) => {
+      console.error('Login mutation error:', error);
+      throw new Error(error.message);
     },
   });
 
@@ -31,9 +52,9 @@ export function useAuth() {
     onSuccess: () => {
       router.push('/login');
     },
-    onError: (error: unknown) => {
-      const err = error as AxiosError<{ message?: string }>;
-      throw new Error(err.response?.data?.message || 'Đăng ký thất bại');
+    onError: (error: CustomApiError) => {
+      console.error('Register mutation error:', error);
+      throw new Error(error.message);
     },
   });
 
@@ -41,26 +62,89 @@ export function useAuth() {
     mutationFn: logout,
     onSuccess: () => {
       setUser(null);
+      setIsAuthenticated(false);
       queryClient.clear();
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('csrfToken');
       router.push('/login');
+    },
+    onError: (error: CustomApiError) => {
+      console.error('Logout mutation error:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      queryClient.clear();
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('csrfToken');
+      router.push('/login');
+      throw new Error(error.message);
     },
   });
 
   const updateFcmTokenMutation = useMutation({
     mutationFn: updateFcmToken,
-    onError: (error: unknown) => {
-      const err = error as AxiosError;
-      console.error('Error updating FCM token:', err);
+    onError: (error: CustomApiError) => {
+      console.error('Update FCM token mutation error:', error);
+      throw new Error(error.message);
+    },
+  });
+
+  const forgotPasswordMutation = useMutation({
+    mutationFn: forgotPassword,
+    onSuccess: () => {
+      router.push('/login');
+    },
+    onError: (error: CustomApiError) => {
+      console.error('Forgot password mutation error:', error);
+      throw new Error(error.message);
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ token, password }: { token: string; password: string }) => resetPassword(token, password),
+    onSuccess: () => {
+      router.push('/login');
+    },
+    onError: (error: CustomApiError) => {
+      console.error('Reset password mutation error:', error);
+      throw new Error(error.message);
+    },
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: () => {
+      setUser(null);
+      setIsAuthenticated(false);
+      queryClient.clear();
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('csrfToken');
+      router.push('/login');
+    },
+    onError: (error: CustomApiError) => {
+      console.error('Delete account mutation error:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      queryClient.clear();
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('csrfToken');
+      router.push('/login');
+      throw new Error(error.message);
     },
   });
 
   return {
     user,
+    isAuthenticated,
     login: loginMutation.mutate,
     register: registerMutation.mutate,
     logout: logoutMutation.mutate,
     updateFcmToken: updateFcmTokenMutation.mutate,
-    isLoading: loginMutation.isPending || registerMutation.isPending || logoutMutation.isPending,
-    error: loginMutation.error || registerMutation.error || logoutMutation.error,
+    forgotPassword: forgotPasswordMutation.mutate,
+    resetPassword: resetPasswordMutation.mutate,
+    deleteAccount: deleteAccountMutation.mutate,
+    isLoading: loginMutation.isPending || registerMutation.isPending || logoutMutation.isPending || forgotPasswordMutation.isPending || resetPasswordMutation.isPending || deleteAccountMutation.isPending,
+    error: loginMutation.error || registerMutation.error || logoutMutation.error || forgotPasswordMutation.error || resetPasswordMutation.error || deleteAccountMutation.error,
+    setUser,
+    setIsAuthenticated,
   };
 }

@@ -14,7 +14,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="#" className="flex-shrink-0 flex items-center">
               <img src="/images/Logo.png" alt="Logo" className="h-25 w-25"/>
-              <span className={`font-sans font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-yellow-300`}>
+              <span className={`font-sans font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-yellow-300`}>
               DMPA
             </span>
             </Link>

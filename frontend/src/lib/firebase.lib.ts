@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, onMessage, getToken, MessagePayload } from 'firebase/messaging';
+import { getMessaging, onMessage, getToken,MessagePayload } from 'firebase/messaging';
+import toast from 'react-hot-toast';
 import { updateFcmToken } from '@/services/auth.service';
 
 const firebaseConfig = {
@@ -33,7 +34,9 @@ export async function initializeFCM() {
 
 export function listenForNotifications(callback: (payload: MessagePayload) => void) {
   onMessage(messaging, (payload) => {
-    console.log('Received FCM message:', payload);
+    if (payload.notification?.body) {
+      toast.success(payload.notification.body ?? 'New notification');
+    }
     callback(payload);
   });
 }

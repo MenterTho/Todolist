@@ -41,3 +41,20 @@ export interface RegisterResponse {
     createdAt: string;
   };
 }
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  data: {
+    accessToken: string;
+    csrfToken: string;
+    user: {
+      id: number;
+      email: string;
+      name: string;
+      role: string;
+      avatarUrl?: string;
+      phoneNumber?: string;
+    };
+  };
+}
