@@ -1,18 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth.hook";
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false); 
-  const [dropdownOpen, setDropdownOpen] = useState(false); 
-// const { user, isAuthenticated, logout } = useAuth();
-const isAuthenticated = true;
-const user = { 
-  name: "Demo User", 
-  avatarUrl: "/images/avatar/avatardefault.png" 
-};
-const logout = () => console.log("fake logout");
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<"notif" | "profile" | null>(null);
+  const { user, isAuthenticated, logout } = useAuth();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // fake user
+  // const isAuthenticated = true;
+  // const user = {
+  //   name: "Demo User",
+  //   avatarUrl: "/images/avatar/avatardefault.png",
+  // };
+  // const logout = () => console.log("fake logout");
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-20 bg-white/10 backdrop-blur-md border-b border-white/10 rounded-b-2xl">
@@ -21,48 +38,77 @@ const logout = () => console.log("fake logout");
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <img src="/images/Logo.png" alt="Logo" className="h-25 w-25" />
-              <span className="font-sans font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-yellow-300">
+              <img src="/images/Logo.png" alt="Logo" className="h-10 w-10" />
+              <span className="ml-2 font-sans font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-yellow-300">
                 DMPA
               </span>
             </Link>
           </div>
 
-          {/* Right Buttons */}
-          <div className="flex items-center">
-            <div className="hidden md:ml-4 md:flex md:items-center md:space-x-4">
-              {!isAuthenticated ? (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100"
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              ) : (
+          {/* Right section */}
+          <div className="flex items-center space-x-6">
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  href="/login"
+                  className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : (
+              <div className="flex items-center space-x-4" ref={dropdownRef}>
+                {/* Notification */}
                 <div className="relative">
-                  {/* Avatar button */}
                   <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onClick={() =>
+                      setActiveDropdown(activeDropdown === "notif" ? null : "notif")
+                    }
+                    className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/20 text-white"
+                  >
+                    <Bell className="h-6 w-6" />
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center 
+                                    px-1.5 py-0.5 text-xs font-bold leading-none 
+                                    text-white bg-red-600 rounded-full">
+                      3
+                    </span>
+                  </button>
+
+                  {activeDropdown === "notif" && (
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-md shadow-lg py-2 z-50">
+                      <p className="px-4 py-2 text-sm text-gray-600">Bạn có 3 thông báo</p>
+                      <Link
+                        href="/notifications"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Xem tất cả
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Avatar + name */}
+                <div className="relative">
+                  <button
+                    onClick={() =>
+                      setActiveDropdown(activeDropdown === "profile" ? null : "profile")
+                    }
                     className="flex items-center focus:outline-none"
                   >
                     <img
-                      src={user?.avatarUrl || "/images/avatar/avatardefault.png"}
+                      src={user?.avatarUrl}
                       alt={user?.name}
                       className="h-8 w-8 rounded-full border border-gray-300"
                     />
                     <span className="ml-2 text-white">{user?.name}</span>
                   </button>
-
-                  {/* Dropdown menu */}
-                  {dropdownOpen && (
+                  {activeDropdown === "profile" && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-50">
                       <Link
                         href="/profile"
@@ -85,11 +131,11 @@ const logout = () => console.log("fake logout");
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Mobile Button */}
-            <div className="flex items-center md:hidden">
+            {/* Mobile menu button */}
+            <div className="md:hidden">
               <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
@@ -124,72 +170,6 @@ const logout = () => console.log("fake logout");
           </div>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden" id="mobile-menu">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-800 bg-opacity-90">
-            <Link
-              href="/"
-              className="text-white block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              href="/about"
-              className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-            >
-              About
-            </Link>
-
-            {!isAuthenticated ? (
-              <>
-                <Link
-                  href="/login"
-                  className="block w-full text-center text-white bg-gray-700 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-600"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/register"
-                  className="block w-full text-center bg-white text-indigo-600 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
-                >
-                  Sign Up
-                </Link>
-              </>
-            ) : (
-              <div className="pt-4 border-t border-gray-700">
-                <div className="flex items-center px-5">
-                  <img
-                    src={user?.avatarUrl || "/images/default-avatar.png"}
-                    alt={user?.name}
-                    className="h-10 w-10 rounded-full"
-                  />
-                  <span className="ml-3 text-white">{user?.name}</span>
-                </div>
-                <Link
-                  href="/profile"
-                  className="mt-3 block w-full text-center text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base"
-                >
-                  Profile
-                </Link>
-                <Link
-                  href="/settings"
-                  className="block w-full text-center text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base"
-                >
-                  Settings
-                </Link>
-                <button
-                  onClick={() => logout()}
-                  className="mt-3 w-full text-center text-white bg-red-500 px-3 py-2 rounded-md text-base font-medium hover:bg-red-600"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 }

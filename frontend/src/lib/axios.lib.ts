@@ -12,7 +12,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// ===== Refresh Token Queue =====
+//  Refresh Token Queue 
 let isRefreshing = false;
 let failedQueue: Array<(token?: string) => void> = [];
 
@@ -21,7 +21,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
-// ===== Request Interceptor =====
+//  Request Interceptor 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const accessToken = localStorage.getItem('accessToken');
   if (accessToken) {
@@ -36,7 +36,7 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-// ===== Response Interceptor =====
+// Response Interceptor 
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError): Promise<AxiosResponse | never> => {

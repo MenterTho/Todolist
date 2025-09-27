@@ -1,9 +1,31 @@
 "use client";
+
 import { useState } from "react";
 import ForgotPasswordModal from "./forgotpassword";
+import { useAuth } from "@/hooks/useAuth.hook";
+import toast from "react-hot-toast";
+import { LoginRequest } from "@/types/auth.type";
 
 export default function Login() {
   const [isForgotOpen, setForgotOpen] = useState(false);
+  const [formData, setFormData] = useState<LoginRequest>({ email: "", password: "" });
+  const { login, isLoading, error } = useAuth();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await login(formData);
+      toast.success("Đăng nhập thành công!");
+    } catch (err) {
+      const apiError = err as Error;
+      toast.error(apiError.message || "Đăng nhập thất bại");
+    }
+  };
 
   return (
     <div className="relative min-h-screen flex">
@@ -28,7 +50,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Floating background */}
           <ul className="circles">
             {Array.from({ length: 10 }).map((_, i) => (
               <li key={i} className="animate-floating"></li>
@@ -48,7 +69,7 @@ export default function Login() {
               </p>
             </div>
 
-            <form className="mt-8 space-y-6">
+            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Email
@@ -56,7 +77,11 @@ export default function Login() {
                 <input
                   className="w-full text-base px-4 py-2 border-b border-gray-300 focus:outline-none rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-300 transition-all duration-300"
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="mail@gmail.com"
+                  required
                 />
               </div>
 
@@ -67,7 +92,11 @@ export default function Login() {
                 <input
                   className="w-full text-base px-4 py-2 border-b rounded-2xl border-gray-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-300 transition-all duration-300"
                   type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="Enter your password"
+                  required
                 />
               </div>
 
@@ -87,9 +116,12 @@ export default function Login() {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-blue-600 hover:to-indigo-500 text-gray-100 p-4 rounded-full tracking-wide font-semibold shadow-lg transition-all duration-500 transform hover:scale-105 hover:shadow-2xl animate-pulse-slow"
+                  disabled={isLoading}
+                  className={`w-full flex justify-center bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-blue-600 hover:to-indigo-500 text-gray-100 p-4 rounded-full tracking-wide font-semibold shadow-lg transition-all duration-500 transform hover:scale-105 hover:shadow-2xl animate-pulse-slow ${
+                    isLoading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 >
-                  Sign in
+                  {isLoading ? "Signing in..." : "Sign in"}
                 </button>
               </div>
             </form>
@@ -107,7 +139,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Forgot password modal */}
       <ForgotPasswordModal isOpen={isForgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
