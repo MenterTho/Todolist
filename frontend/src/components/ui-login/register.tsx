@@ -15,6 +15,7 @@ export default function Register() {
   });
   const [avatarFile, setAvatarFile] = useState<File | undefined>(undefined);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const { register, isLoading } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,23 +24,58 @@ export default function Register() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; 
-    setAvatarFile(file); 
+    const file = e.target.files?.[0];
+    setAvatarFile(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({}); // reset error mỗi lần submit
+
     if (formData.password !== confirmPassword) {
       toast.error("Mật khẩu xác nhận không khớp");
+      setFieldErrors({ confirmPassword: "Mật khẩu xác nhận không khớp" });
       return;
     }
+
     try {
-      await register({ data: formData, file: avatarFile });
-      toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-    } catch (err) {
-      const apiError = err as Error;
-      toast.error(apiError.message || "Đăng ký thất bại");
-    }
+        await register({ data: formData, file: avatarFile });
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+      } catch (err: unknown) {
+        if (err && typeof err === "object" && "response" in err) {
+          const axiosErr = err as {
+            response?: {
+              data?: {
+                errors?: { field: string; errors: string[] }[];
+              };
+            };
+          };
+
+          const errors = axiosErr.response?.data?.errors;
+
+          if (errors) {
+            // Toast cho từng lỗi
+            errors.forEach((e) => {
+              e.errors.forEach((msg) => {
+                toast.error(`${e.field}: ${msg}`);
+              });
+            });
+
+            // Gán lỗi vào state để hiện dưới input
+            setFieldErrors(
+              errors.reduce<Record<string, string>>((acc, e) => {
+                acc[e.field] = e.errors[0];
+                return acc;
+              }, {})
+            );
+          } else {
+            toast.error("Đăng ký thất bại, vui lòng thử lại");
+          }
+        } else {
+          toast.error("Có lỗi không xác định xảy ra");
+        }
+      }
+
   };
 
   return (
@@ -85,6 +121,7 @@ export default function Register() {
             </div>
 
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+              {/* Full Name */}
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Full Name
@@ -98,8 +135,12 @@ export default function Register() {
                   placeholder="Your name"
                   required
                 />
+                {fieldErrors.name && (
+                  <p className="text-red-500 text-sm mt-1">{fieldErrors.name}</p>
+                )}
               </div>
 
+              {/* Email */}
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Email
@@ -113,8 +154,12 @@ export default function Register() {
                   placeholder="mail@gmail.com"
                   required
                 />
+                {fieldErrors.email && (
+                  <p className="text-red-500 text-sm mt-1">{fieldErrors.email}</p>
+                )}
               </div>
 
+              {/* Phone Number */}
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Phone Number
@@ -127,8 +172,14 @@ export default function Register() {
                   onChange={handleInputChange}
                   placeholder="Enter your phone number"
                 />
+                {fieldErrors.phoneNumber && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {fieldErrors.phoneNumber}
+                  </p>
+                )}
               </div>
 
+              {/* Avatar */}
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Avatar
@@ -141,6 +192,7 @@ export default function Register() {
                 />
               </div>
 
+              {/* Password */}
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Password
@@ -154,8 +206,14 @@ export default function Register() {
                   placeholder="Enter your password"
                   required
                 />
+                {fieldErrors.password && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {fieldErrors.password}
+                  </p>
+                )}
               </div>
 
+              {/* Confirm Password */}
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Confirm Password
@@ -168,6 +226,11 @@ export default function Register() {
                   placeholder="Confirm your password"
                   required
                 />
+                {fieldErrors.confirmPassword && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {fieldErrors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               <div>

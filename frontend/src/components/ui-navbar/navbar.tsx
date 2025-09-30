@@ -70,9 +70,9 @@ export default function Navbar() {
                     onClick={() =>
                       setActiveDropdown(activeDropdown === "notif" ? null : "notif")
                     }
-                    className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/20 text-white"
+                    className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/29 text-white"
                   >
-                    <Bell className="h-6 w-6" />
+                    <Bell className="h-6 w-6 text-yellow-500" />
                     <span className="absolute -top-1 -right-1 inline-flex items-center justify-center 
                                     px-1.5 py-0.5 text-xs font-bold leading-none 
                                     text-white bg-red-600 rounded-full">
@@ -104,9 +104,9 @@ export default function Navbar() {
                     <img
                       src={user?.avatarUrl}
                       alt={user?.name}
-                      className="h-8 w-8 rounded-full border border-gray-300"
+                      className="h-12 w-14 rounded-full border border-gray-300"
                     />
-                    <span className="ml-2 text-white">{user?.name}</span>
+                    <span className="ml-2 text-black">{user?.name}</span>
                   </button>
                   {activeDropdown === "profile" && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-50">
