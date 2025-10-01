@@ -14,7 +14,7 @@ export class RegisterDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/, { message: "Invalid phone number format" })
+  @Matches(/^(0\d{9}|\+?[1-9]\d{7,14})$/, { message: "Invalid phone number format" })
   phoneNumber?: string;
 
   @IsOptional()

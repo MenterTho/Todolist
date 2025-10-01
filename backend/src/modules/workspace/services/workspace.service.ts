@@ -57,7 +57,7 @@ export class WorkspaceService {
 
   async update(id: number, dto: UpdateWorkspaceDto, userId: number): Promise<Workspace> {
     const userWorkspace = await this.userWorkspaceRepository.findByUserAndWorkspace(userId, id);
-    if (!userWorkspace || userWorkspace.role !== "admin") {
+    if (!userWorkspace || (userWorkspace.role !== "admin" && userWorkspace.role !== "owner")) {
       throw new Error("Người dùng không có quyền cập nhật không gian làm việc này");
     }
 

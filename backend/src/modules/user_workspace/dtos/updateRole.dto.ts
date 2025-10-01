@@ -5,6 +5,6 @@ export class UpdateMemberRoleDto {
   memberId!: number;
 
   @IsString()
-  @IsIn(["owner", "management", "member"], { message: "Vai trò phải là 'owner' hoặc 'member'" })
+  @IsIn(["management","member"], { message: "Vai trò phải là 'management' hoặc 'member'" })
   role!: string;
 }

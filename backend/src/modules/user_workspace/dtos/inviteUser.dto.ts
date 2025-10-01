@@ -5,6 +5,6 @@ export class InviteUserDto {
   email!: string;
 
   @IsString()
-  @IsIn(["admin", "member"], { message: "Vai trò phải là 'admin' hoặc 'member'" })
+  @IsIn(["member"], { message: "Vai trò phải là 'member'" })
   role!: string;
 }
