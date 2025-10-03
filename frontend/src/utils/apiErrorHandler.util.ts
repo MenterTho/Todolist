@@ -6,16 +6,29 @@ export interface ApiErrorResponse {
   errors?: string[];
 }
 
-export interface CustomApiError {
+export class CustomApiError extends Error {
   status?: number;
-  message: string;
   details?: string[];
+
+  constructor(options: { status?: number; message: string; details?: string[] }) {
+    super(options.message);
+    this.status = options.status;
+    this.details = options.details;
+  }
 }
 
-export function handleApiError(error: AxiosError<ApiErrorResponse>): CustomApiError {
-  console.error('API error:', error);
-  const status = error.response?.status;
-  const message = error.response?.data?.message || error.response?.data?.errors?.join(', ') || 'Lỗi không xác định';
-  const details = error.response?.data?.errors;
-  return { status, message, details };
+export function handleApiError(error: unknown): CustomApiError {
+  if (error instanceof AxiosError && error.response) {
+    const status = error.response.status;
+    const data = error.response.data as ApiErrorResponse;
+    const message = data.errors?.join(', ') || data.message || 'Lỗi không xác định';
+    const details = data.errors;
+    return new CustomApiError({ status, message, details });
+  }
+
+  console.error('Non-Axios error:', error);
+  return new CustomApiError({
+    message: error instanceof Error ? error.message : 'Lỗi không xác định',
+    details: undefined,
+  });
 }

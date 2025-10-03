@@ -1,17 +1,7 @@
 import api from '@/lib/axios.lib';
 import { AxiosResponse, AxiosError } from 'axios';
-import { UpdateProfileDto, UpdateRoleDto } from '@/types/user.type';
+import { UserProfile, UpdateProfileDto, UpdateRoleDto } from '@/types/user.type';
 import { handleApiError, CustomApiError, ApiErrorResponse } from '@/utils/apiErrorHandler.util';
-
-export interface UserProfile {
-  id: number;
-  email: string;
-  name: string;
-  phoneNumber?: string;
-  avatarUrl?: string;
-  role: string;
-  createdAt?: string; // Giữ tùy chọn để tương thích nếu backend không trả createdAt
-}
 
 export interface GetAllUsersResponse {
   users: UserProfile[];
@@ -32,7 +22,7 @@ export async function getAllUsers(params: {
     const response: AxiosResponse<{ success: boolean; message: string; data: GetAllUsersResponse }> = await api.get('/user/getAll', { params });
     return response.data.data;
   } catch (error) {
-    throw new Error(handleApiError(error as AxiosError<ApiErrorResponse>).message);
+    throw handleApiError(error as AxiosError<ApiErrorResponse>);
   }
 }
 
@@ -41,7 +31,7 @@ export async function getProfile(): Promise<UserProfile> {
     const response: AxiosResponse<{ success: boolean; message: string; data: UserProfile }> = await api.get('/user/profile');
     return response.data.data;
   } catch (error) {
-    throw new Error(handleApiError(error as AxiosError<ApiErrorResponse>).message);
+    throw handleApiError(error as AxiosError<ApiErrorResponse>);
   }
 }
 
@@ -57,7 +47,7 @@ export async function updateProfile(data: UpdateProfileDto, avatar?: File): Prom
     });
     return response.data.data;
   } catch (error) {
-    throw new Error(handleApiError(error as AxiosError<ApiErrorResponse>).message);
+    throw handleApiError(error as AxiosError<ApiErrorResponse>);
   }
 }
 
@@ -66,7 +56,7 @@ export async function deleteAccount(): Promise<{ message: string }> {
     const response: AxiosResponse<{ success: boolean; message: string; data: null }> = await api.delete('/user/delete-account');
     return { message: response.data.message };
   } catch (error) {
-    throw new Error(handleApiError(error as AxiosError<ApiErrorResponse>).message);
+    throw handleApiError(error as AxiosError<ApiErrorResponse>);
   }
 }
 
@@ -75,6 +65,6 @@ export async function updateRole(userId: number, data: UpdateRoleDto): Promise<U
     const response: AxiosResponse<{ success: boolean; message: string; data: UserProfile }> = await api.patch(`/user/update-role/${userId}`, data);
     return response.data.data;
   } catch (error) {
-    throw new Error(handleApiError(error as AxiosError<ApiErrorResponse>).message);
+    throw handleApiError(error as AxiosError<ApiErrorResponse>);
   }
 }

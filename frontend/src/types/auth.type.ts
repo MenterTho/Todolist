@@ -1,3 +1,5 @@
+import { UserProfile } from './user.type';
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -17,14 +19,7 @@ export interface LoginResponse {
   data: {
     accessToken: string;
     csrfToken: string;
-    user: {
-      id: number;
-      email: string;
-      name: string;
-      role: string;
-      avatarUrl?: string;
-      phoneNumber?: string;
-    };
+    user: UserProfile;
   };
 }
 
@@ -35,7 +30,7 @@ export interface RegisterResponse {
     id: number;
     email: string;
     name: string;
-    role: string;
+    role: 'owner' | 'management' | 'member';
     avatarUrl?: string;
     phoneNumber?: string;
     createdAt: string;
@@ -48,13 +43,6 @@ export interface RefreshTokenResponse {
   data: {
     accessToken: string;
     csrfToken: string;
-    user: {
-      id: number;
-      email: string;
-      name: string;
-      role: string;
-      avatarUrl?: string;
-      phoneNumber?: string;
-    };
+    user: UserProfile;
   };
 }

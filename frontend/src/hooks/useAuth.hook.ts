@@ -4,16 +4,15 @@ import { getProfile, deleteAccount } from '@/services/user.service';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import type { LoginRequest, RegisterRequest, LoginResponse } from '@/types/auth.type';
-import type { UserProfile } from '@/services/user.service';
+import type { UserProfile } from '@/types/user.type';
 import { CustomApiError } from '@/utils/apiErrorHandler.util';
 
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Khởi tạo false để tránh SSR
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Kiểm tra localStorage trên client
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsAuthenticated(!!localStorage.getItem('accessToken'));
@@ -41,20 +40,21 @@ export function useAuth() {
     }
   }, [profile, profileError]);
 
-  const loginMutation = useMutation<LoginResponse, CustomApiError, LoginRequest>({
+  const loginMutation = useMutation<LoginResponse['data'], CustomApiError, LoginRequest>({
     mutationFn: login,
     onSuccess: (data) => {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', data.data.accessToken);
-        localStorage.setItem('csrfToken', data.data.csrfToken);
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('csrfToken', data.csrfToken);
       }
-      setUser(data.data.user);
+      setUser(data.user);
+      setIsAuthenticated(true);
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
       router.push('/dashboard');
     },
     onError: (error) => {
       console.error('Login mutation error:', error);
-      throw new Error(error.message);
+      throw error;
     },
   });
 
@@ -65,7 +65,7 @@ export function useAuth() {
     },
     onError: (error: CustomApiError) => {
       console.error('Register mutation error:', error);
-      throw new Error(error.message);
+      throw error;
     },
   });
 
@@ -91,7 +91,7 @@ export function useAuth() {
         localStorage.removeItem('csrfToken');
       }
       router.push('/login');
-      throw new Error(error.message);
+      throw error;
     },
   });
 
@@ -99,7 +99,7 @@ export function useAuth() {
     mutationFn: updateFcmToken,
     onError: (error: CustomApiError) => {
       console.error('Update FCM token mutation error:', error);
-      throw new Error(error.message);
+      throw error;
     },
   });
 
@@ -110,7 +110,7 @@ export function useAuth() {
     },
     onError: (error: CustomApiError) => {
       console.error('Forgot password mutation error:', error);
-      throw new Error(error.message);
+      throw error;
     },
   });
 
@@ -121,7 +121,7 @@ export function useAuth() {
     },
     onError: (error: CustomApiError) => {
       console.error('Reset password mutation error:', error);
-      throw new Error(error.message);
+      throw error;
     },
   });
 
@@ -147,7 +147,7 @@ export function useAuth() {
         localStorage.removeItem('csrfToken');
       }
       router.push('/login');
-      throw new Error(error.message);
+      throw error;
     },
   });
 
