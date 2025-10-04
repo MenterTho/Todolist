@@ -1,7 +1,22 @@
 "use client";
 import { FaUsers, FaSignal, FaHeartbeat, FaExclamationTriangle, FaUserPlus, FaFileExport } from "react-icons/fa";
+import { useAuth } from "@/hooks/useAuth.hook";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
+  const { isAuthenticated, isProfileLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('accessToken');
+    console.log('DashboardPage useEffect:', { isAuthenticated, isProfileLoading, hasToken });
+    if (!isAuthenticated && !isProfileLoading && !hasToken) {
+      console.log('Redirecting to /login');
+      router.push("/login");
+    }
+  }, [isAuthenticated, isProfileLoading, router]);
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}

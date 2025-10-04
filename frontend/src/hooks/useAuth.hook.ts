@@ -6,20 +6,17 @@ import { useState, useEffect } from 'react';
 import type { LoginRequest, RegisterRequest, LoginResponse } from '@/types/auth.type';
 import type { UserProfile } from '@/types/user.type';
 import { CustomApiError } from '@/utils/apiErrorHandler.util';
+import toast from 'react-hot-toast';
 
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    typeof window !== 'undefined' && !!localStorage.getItem('accessToken')
+  );
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsAuthenticated(!!localStorage.getItem('accessToken'));
-    }
-  }, []);
-
-  const { data: profile, error: profileError } = useQuery<UserProfile, CustomApiError>({
+  const { data: profile, error: profileError, isLoading: isProfileLoading } = useQuery<UserProfile, CustomApiError>({
     queryKey: ['userProfile'],
     queryFn: getProfile,
     enabled: isAuthenticated,
@@ -32,11 +29,12 @@ export function useAuth() {
       setIsAuthenticated(true);
     } else if (profileError) {
       setUser(null);
-      setIsAuthenticated(false);
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('csrfToken');
-      }
+      console.error('Profile error:', {
+        status: profileError.status,
+        message: profileError.message,
+        details: profileError.details,
+      });
+      toast.error(profileError.details?.join(', ') || profileError.message || 'Lỗi lấy thông tin người dùng');
     }
   }, [profile, profileError]);
 
@@ -49,23 +47,25 @@ export function useAuth() {
       }
       setUser(data.user);
       setIsAuthenticated(true);
+      console.log('Login success, isAuthenticated:', true);
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      toast.success("Đăng nhập thành công!");
       router.push('/dashboard');
     },
     onError: (error) => {
       console.error('Login mutation error:', error);
-      throw error;
     },
   });
 
   const registerMutation = useMutation({
     mutationFn: ({ data, file }: { data: RegisterRequest; file?: File }) => register(data, file),
     onSuccess: () => {
+      toast.success("Đăng ký thành công!");
       router.push('/login');
     },
     onError: (error: CustomApiError) => {
       console.error('Register mutation error:', error);
-      throw error;
+      toast.error(error.details?.join(', ') || error.message || 'Đăng ký thất bại');
     },
   });
 
@@ -79,6 +79,7 @@ export function useAuth() {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('csrfToken');
       }
+      toast.success("Đăng xuất thành công!");
       router.push('/login');
     },
     onError: (error: CustomApiError) => {
@@ -90,8 +91,8 @@ export function useAuth() {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('csrfToken');
       }
+      toast.error(error.details?.join(', ') || error.message || 'Đăng xuất thất bại');
       router.push('/login');
-      throw error;
     },
   });
 
@@ -99,29 +100,31 @@ export function useAuth() {
     mutationFn: updateFcmToken,
     onError: (error: CustomApiError) => {
       console.error('Update FCM token mutation error:', error);
-      throw error;
+      toast.error(error.details?.join(', ') || error.message || 'Cập nhật FCM token thất bại');
     },
   });
 
   const forgotPasswordMutation = useMutation({
     mutationFn: forgotPassword,
     onSuccess: () => {
+      toast.success("Gửi yêu cầu đặt lại mật khẩu thành công!");
       router.push('/login');
     },
     onError: (error: CustomApiError) => {
       console.error('Forgot password mutation error:', error);
-      throw error;
+      toast.error(error.details?.join(', ') || error.message || 'Gửi yêu cầu đặt lại mật khẩu thất bại');
     },
   });
 
   const resetPasswordMutation = useMutation({
     mutationFn: ({ token, password }: { token: string; password: string }) => resetPassword(token, password),
     onSuccess: () => {
+      toast.success("Đặt lại mật khẩu thành công!");
       router.push('/login');
     },
     onError: (error: CustomApiError) => {
       console.error('Reset password mutation error:', error);
-      throw error;
+      toast.error(error.details?.join(', ') || error.message || 'Đặt lại mật khẩu thất bại');
     },
   });
 
@@ -135,6 +138,7 @@ export function useAuth() {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('csrfToken');
       }
+      toast.success("Xóa tài khoản thành công!");
       router.push('/login');
     },
     onError: (error: CustomApiError) => {
@@ -146,8 +150,8 @@ export function useAuth() {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('csrfToken');
       }
+      toast.error(error.details?.join(', ') || error.message || 'Xóa tài khoản thất bại');
       router.push('/login');
-      throw error;
     },
   });
 
@@ -162,6 +166,7 @@ export function useAuth() {
     resetPassword: resetPasswordMutation.mutate,
     deleteAccount: deleteAccountMutation.mutate,
     isLoading: loginMutation.isPending || registerMutation.isPending || logoutMutation.isPending || forgotPasswordMutation.isPending || resetPasswordMutation.isPending || deleteAccountMutation.isPending,
+    isProfileLoading,
     error: loginMutation.error || registerMutation.error || logoutMutation.error || forgotPasswordMutation.error || resetPasswordMutation.error || deleteAccountMutation.error,
     setUser,
     setIsAuthenticated,

@@ -1,30 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ForgotPasswordModal from "./forgotpassword";
 import { useAuth } from "@/hooks/useAuth.hook";
-import toast from "react-hot-toast";
 import { LoginRequest } from "@/types/auth.type";
+import { CustomApiError } from "@/utils/apiErrorHandler.util";
 
 export default function Login() {
   const [isForgotOpen, setForgotOpen] = useState(false);
   const [formData, setFormData] = useState<LoginRequest>({ email: "", password: "" });
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const { login, isLoading, error } = useAuth();
+
+  // Theo dõi error từ hook
+  useEffect(() => {
+    if (error) {
+      const apiError = error as CustomApiError;
+      const message = apiError.details?.join(', ') || apiError.message || "Đăng nhập thất bại";
+      setErrorMessage(message);
+    }
+  }, [error]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errorMessage) setErrorMessage("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await login(formData);
-      toast.success("Đăng nhập thành công!");
-    } catch (err) {
-      const apiError = err as Error;
-      toast.error(apiError.message || "Đăng nhập thất bại");
-    }
+    setErrorMessage("");
+    login(formData);
   };
 
   return (
@@ -35,7 +41,7 @@ export default function Login() {
           className="sm:w-1/2 xl:w-2/5 h-full hidden md:flex flex-auto items-center justify-start p-10 overflow-hidden bg-purple-900 text-white bg-no-repeat bg-cover relative"
           style={{
             backgroundImage:
-              "url(https://images.unsplash.com/photo-1579451861283-a2239070aaa9?auto=format&fit=crop&w=1950&q=80)",
+              "ur[](https://images.unsplash.com/photo-1579451861283-a2239070aaa9?auto=format&fit=crop&w=1950&q=80)",
           }}
         >
           <div className="absolute bg-gradient-to-r from-purple-900 via-indigo-800 to-blue-900 opacity-80 inset-0 z-0 animate-gradient-x"></div>
@@ -69,13 +75,27 @@ export default function Login() {
               </p>
             </div>
 
+            {/* Hiển thị error message */}
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg animate-fadeInUp">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span>{errorMessage}</span>
+                </div>
+              </div>
+            )}
+
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="ml-3 text-sm font-bold text-gray-700 tracking-wide">
                   Email
                 </label>
                 <input
-                  className="w-full text-base px-4 py-2 border-b border-gray-300 focus:outline-none rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-300 transition-all duration-300"
+                  className={`w-full text-base px-4 py-2 border-b ${
+                    errorMessage ? 'border-red-300' : 'border-gray-300'
+                  } focus:outline-none rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-300 transition-all duration-300`}
                   type="email"
                   name="email"
                   value={formData.email}
@@ -90,7 +110,9 @@ export default function Login() {
                   Password
                 </label>
                 <input
-                  className="w-full text-base px-4 py-2 border-b rounded-2xl border-gray-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-300 transition-all duration-300"
+                  className={`w-full text-base px-4 py-2 border-b rounded-2xl ${
+                    errorMessage ? 'border-red-300' : 'border-gray-300'
+                  } focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-300 transition-all duration-300`}
                   type="password"
                   name="password"
                   value={formData.password}
@@ -121,7 +143,17 @@ export default function Login() {
                     isLoading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  {isLoading ? "Signing in..." : "Sign in"}
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Signing in...
+                    </div>
+                  ) : (
+                    "Sign in"
+                  )}
                 </button>
               </div>
             </form>
