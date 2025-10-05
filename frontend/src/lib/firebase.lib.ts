@@ -1,7 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, onMessage, getToken,MessagePayload } from 'firebase/messaging';
+import { getMessaging, onMessage, getToken, MessagePayload } from 'firebase/messaging';
 import toast from 'react-hot-toast';
 import { updateFcmToken } from '@/services/auth.service';
+import { CustomApiError } from '@/utils/apiErrorHandler.util';
+import { UpdateFcmTokenRequest, UpdateFcmTokenResponse } from '@/types/auth.type';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,27 +17,34 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
-export async function initializeFCM() {
+export async function initializeFCM(): Promise<void> {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       const token = await getToken(messaging, {
         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
       });
-      await updateFcmToken(token);
+      const response: UpdateFcmTokenResponse = await updateFcmToken({ fcmToken: token });
       console.log('FCM token updated:', token);
+      toast.success(response.message || 'Cập nhật FCM token thành công!');
     } else {
-      console.warn('Notification permission denied');
+      throw new CustomApiError({ message: 'Quyền thông báo bị từ chối' });
     }
   } catch (error) {
-    console.error('Error initializing FCM:', error);
+    console.error('Lỗi khởi tạo FCM:', error);
+    const errorMessage =
+      error instanceof CustomApiError
+        ? error.details?.join(', ') || error.message || 'Lỗi khởi tạo FCM'
+        : 'Lỗi khởi tạo FCM';
+    toast.error(errorMessage);
+    throw error instanceof CustomApiError ? error : new CustomApiError({ message: 'Lỗi khởi tạo FCM' });
   }
 }
 
 export function listenForNotifications(callback: (payload: MessagePayload) => void) {
   onMessage(messaging, (payload) => {
     if (payload.notification?.body) {
-      toast.success(payload.notification.body ?? 'New notification');
+      toast.success(payload.notification.body ?? 'Thông báo mới');
     }
     callback(payload);
   });

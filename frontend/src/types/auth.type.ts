@@ -19,7 +19,12 @@ export interface LoginResponse {
   data: {
     accessToken: string;
     csrfToken: string;
-    user: UserProfile;
+    user: {
+      id: number;
+      email: string;
+      name: string;
+      role: 'owner' | 'management' | 'member';
+    };
   };
 }
 
@@ -43,6 +48,47 @@ export interface RefreshTokenResponse {
   data: {
     accessToken: string;
     csrfToken: string;
-    user: UserProfile;
+    user: {
+      id: number;
+      email: string;
+      name: string;
+      role: 'owner' | 'management' | 'member';
+    };
   };
+}
+
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
+  data: null;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+  data: null;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+  data: null;
+}
+
+export interface UpdateFcmTokenRequest {
+  fcmToken: string;
+}
+
+export interface UpdateFcmTokenResponse {
+  success: boolean;
+  message: string;
 }
