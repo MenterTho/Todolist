@@ -1,5 +1,3 @@
-import { UserProfile } from './user.type';
-
 export interface LoginRequest {
   email: string;
   password: string;
