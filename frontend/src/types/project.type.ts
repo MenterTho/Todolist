@@ -1,5 +1,6 @@
 import { UserWorkspace } from './workspace.type';
-// import { Task } from './task.type';
+import { Task } from './task.type';
+import { GenericResponse, GenericDeleteResponse } from '@/utils/common.type';
 
 export interface Project {
   id: number;
@@ -8,13 +9,14 @@ export interface Project {
   workspaceId: number;
   createdAt: string;
   updatedAt: string;
-  // tasks?: Task[]; 
+  isDeleted: boolean;
   workspace: {
     id: number;
     name: string;
     ownerId: number;
     userWorkspaces: UserWorkspace[];
   };
+  tasks: Task[];
 }
 
 export interface CreateProjectRequest {
@@ -28,20 +30,6 @@ export interface UpdateProjectRequest {
   description?: string;
 }
 
-export interface ProjectResponse {
-  success: boolean;
-  message: string;
-  data: Project;
-}
-
-export interface ProjectsResponse {
-  success: boolean;
-  message: string;
-  data: Project[];
-}
-
-export interface DeleteProjectResponse {
-  success: boolean;
-  message: string;
-  data: null;
-}
+export type ProjectResponse = GenericResponse<Project>;
+export type ProjectsResponse = GenericResponse<Project[]>;
+export type DeleteProjectResponse = GenericDeleteResponse;
