@@ -62,7 +62,29 @@ export class ProjectController {
       }
     }
   }
+  async getUserProjects(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      const skip = parseInt(req.query.skip as string) || 0;
+      const take = parseInt(req.query.take as string) || 10;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
+      }
 
+      const projects = await this.projectService.getUserProjects(userId, skip, take);
+      res.status(200).json({
+        success: true,
+        message: "Lấy danh sách dự án của người dùng thành công",
+        data: projects,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ success: false, message: error.message });
+      } else {
+        res.status(400).json({ success: false, message: "Lỗi không xác định" });
+      }
+    }
+  }
   async getProjectsByWorkspace(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;

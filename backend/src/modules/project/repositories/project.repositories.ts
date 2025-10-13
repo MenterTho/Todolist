@@ -11,7 +11,22 @@ export class ProjectRepository {
     this.repository = AppDataSource.getRepository(Project);
     this.userWorkspaceRepository = AppDataSource.getRepository(UserWorkspace);
   }
-
+  async findByUser(userId: number, options: { skip?: number; take?: number } = {}): Promise<Project[]> {
+    const { skip = 0, take = 10 } = options;
+    return await this.repository
+      .createQueryBuilder("project")
+      .innerJoin("project.workspace", "workspace")
+      .innerJoin("workspace.userWorkspaces", "userWorkspace")
+      .where("userWorkspace.userId = :userId", { userId })
+      .andWhere("project.isDeleted = false")
+      .leftJoinAndSelect("project.tasks", "tasks", "tasks.isDeleted = false")
+      .leftJoinAndSelect("workspace.userWorkspaces", "userWorkspaces")
+      .leftJoinAndSelect("userWorkspaces.user", "user")
+      .orderBy("project.updatedAt", "DESC")
+      .skip(skip)
+      .take(take)
+      .getMany();
+  }
   async save(project: Partial<Project>): Promise<Project> {
     return await this.repository.save(project);
   }

@@ -41,7 +41,9 @@ export class ProjectService {
 
     return project;
   }
-
+  async getUserProjects(userId: number, skip = 0, take = 10): Promise<Project[]> {
+    return await this.projectRepository.findByUser(userId, { skip, take });
+  }
   async getProjectsByWorkspace(workspaceId: number, userId: number): Promise<Project[]> {
     const userWorkspace = await this.projectRepository.findUserWorkspace(userId, workspaceId);
     if (!userWorkspace) {
