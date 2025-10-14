@@ -15,17 +15,18 @@ export class ProjectRepository {
     const { skip = 0, take = 10 } = options;
     return await this.repository
       .createQueryBuilder("project")
-      .innerJoin("project.workspace", "workspace")
-      .innerJoin("workspace.userWorkspaces", "userWorkspace")
-      .where("userWorkspace.userId = :userId", { userId })
-      .andWhere("project.isDeleted = false")
-      .leftJoinAndSelect("project.tasks", "tasks", "tasks.isDeleted = false")
-      .leftJoinAndSelect("workspace.userWorkspaces", "userWorkspaces")
-      .leftJoinAndSelect("userWorkspaces.user", "user")
-      .orderBy("project.updatedAt", "DESC")
-      .skip(skip)
-      .take(take)
-      .getMany();
+    .innerJoinAndSelect("project.workspace", "workspace") 
+    .innerJoin("workspace.userWorkspaces", "userWorkspace")
+    .where("userWorkspace.userId = :userId", { userId })
+    .andWhere("project.isDeleted = false")
+    .leftJoinAndSelect("project.tasks", "tasks", "tasks.isDeleted = false")
+    .leftJoinAndSelect("workspace.userWorkspaces", "userWorkspaces") 
+    .leftJoinAndSelect("userWorkspaces.user", "user")
+    .orderBy("project.updatedAt", "DESC")
+    .skip(skip)
+    .take(take)
+    .getMany();
+
   }
   async save(project: Partial<Project>): Promise<Project> {
     return await this.repository.save(project);
@@ -34,7 +35,11 @@ export class ProjectRepository {
   async findById(id: number): Promise<Project | null> {
     return await this.repository.findOne({
       where: { id, isDeleted: false },
-      relations: ["workspace", "workspace.owner", "tasks"],
+      relations: ["workspace",
+      "workspace.owner",
+      "workspace.userWorkspaces",
+      "workspace.userWorkspaces.user",
+      "tasks"],
     });
   }
 
