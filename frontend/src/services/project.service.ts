@@ -5,7 +5,7 @@ import { handleApiError, CustomApiError, ApiErrorResponse } from '@/utils/apiErr
 
 export async function createProject(data: CreateProjectRequest): Promise<ProjectResponse['data']> {
   try {
-    const response: AxiosResponse<ProjectResponse> = await api.post('/projects/create', data);
+    const response: AxiosResponse<ProjectResponse> = await api.post('/project/create', data);
     return response.data.data;
   } catch (error) {
     throw handleApiError(error as AxiosError<ApiErrorResponse>);
@@ -14,16 +14,25 @@ export async function createProject(data: CreateProjectRequest): Promise<Project
 
 export async function getProject(projectId: number): Promise<ProjectResponse['data']> {
   try {
-    const response: AxiosResponse<ProjectResponse> = await api.get(`/projects/${projectId}`);
+    const response: AxiosResponse<ProjectResponse> = await api.get(`/project/${projectId}`);
     return response.data.data;
   } catch (error) {
     throw handleApiError(error as AxiosError<ApiErrorResponse>);
   }
 }
-
+export async function getUserProjects(skip = 0, take = 10): Promise<ProjectsResponse['data']> {
+  try {
+    const response: AxiosResponse<ProjectsResponse> = await api.get(`/project/user`, {
+      params: { skip, take },
+    });
+    return response.data.data;
+  } catch (error) {
+    throw handleApiError(error as AxiosError<ApiErrorResponse>);
+  }
+}
 export async function getProjectsByWorkspace(workspaceId: number): Promise<ProjectsResponse['data']> {
   try {
-    const response: AxiosResponse<ProjectsResponse> = await api.get(`/projects/workspace/${workspaceId}/projects`);
+    const response: AxiosResponse<ProjectsResponse> = await api.get(`/project/workspace/${workspaceId}/projects`);
     return response.data.data;
   } catch (error) {
     throw handleApiError(error as AxiosError<ApiErrorResponse>);
@@ -32,7 +41,7 @@ export async function getProjectsByWorkspace(workspaceId: number): Promise<Proje
 
 export async function updateProject(projectId: number, data: UpdateProjectRequest): Promise<ProjectResponse['data']> {
   try {
-    const response: AxiosResponse<ProjectResponse> = await api.put(`/projects/${projectId}`, data);
+    const response: AxiosResponse<ProjectResponse> = await api.put(`/project/${projectId}`, data);
     return response.data.data;
   } catch (error) {
     throw handleApiError(error as AxiosError<ApiErrorResponse>);
@@ -41,7 +50,7 @@ export async function updateProject(projectId: number, data: UpdateProjectReques
 
 export async function deleteProject(projectId: number): Promise<DeleteProjectResponse> {
   try {
-    const response: AxiosResponse<DeleteProjectResponse> = await api.delete(`/projects/${projectId}`);
+    const response: AxiosResponse<DeleteProjectResponse> = await api.delete(`/project/${projectId}`);
     return response.data;
   } catch (error) {
     throw handleApiError(error as AxiosError<ApiErrorResponse>);

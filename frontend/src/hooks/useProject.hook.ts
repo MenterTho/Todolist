@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { createProject, getProject, getProjectsByWorkspace, updateProject, deleteProject } from '@/services/project.service';
-import { CreateProjectRequest, UpdateProjectRequest, ProjectResponse, ProjectsResponse ,DeleteProjectResponse } from '@/types/project.type';
+import { createProject, getProject, getProjectsByWorkspace, getUserProjects, updateProject, deleteProject } from '@/services/project.service';
+import { CreateProjectRequest, UpdateProjectRequest, ProjectResponse, ProjectsResponse,DeleteProjectResponse } from '@/types/project.type';
 import { CustomApiError } from '@/utils/apiErrorHandler.util';
 import { useAuth } from './useAuth.hook';
 
@@ -12,6 +12,16 @@ export function useProjects(workspaceId: number) {
     queryKey: ['projects', workspaceId],
     queryFn: () => getProjectsByWorkspace(workspaceId),
     enabled: !!workspaceId && isAuthenticated,
+  });
+}
+
+export function useUserProjects(skip = 0, take = 10) {
+  const { isAuthenticated } = useAuth();
+  return useQuery<ProjectsResponse['data'], CustomApiError>({
+    queryKey: ['userProjects', skip, take],
+    queryFn: () => getUserProjects(skip, take),
+    enabled: isAuthenticated,
+    placeholderData: keepPreviousData, // holding data when change page
   });
 }
 
@@ -32,6 +42,7 @@ export function useProjectMutations() {
     mutationFn: createProject,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects', data.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
       toast.success('Tạo dự án thành công!');
       router.refresh();
     },
@@ -45,6 +56,7 @@ export function useProjectMutations() {
     onSuccess: (data, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects', data.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
       toast.success('Cập nhật dự án thành công!');
       router.refresh();
     },
@@ -57,6 +69,7 @@ export function useProjectMutations() {
     mutationFn: deleteProject,
     onSuccess: (response, projectId) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
       toast.success(response.message || 'Xóa dự án thành công!');
       router.push('/workspace');
     },
