@@ -4,7 +4,7 @@ export interface UserProfile {
   name: string;
   phoneNumber?: string;
   avatarUrl?: string;
-  role: 'owner' | 'management' | 'member';
+  role: 'admin'| 'member';
   isActive: boolean;
   createdAt: string;
 }
@@ -16,5 +16,5 @@ export interface UpdateProfileDto {
 }
 
 export interface UpdateRoleDto {
-  role: 'owner' | 'management' | 'member';
+  role: 'admin'|'member';
 }
