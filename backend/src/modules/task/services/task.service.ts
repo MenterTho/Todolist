@@ -65,7 +65,9 @@ export class TaskService {
 
     return task;
   }
-
+  async getListTasks(userId: number) {
+    return this.taskRepository.findByUser(userId);
+  }
   async getTasksByProject(projectId: number, userId: number): Promise<Task[]> {
     const project = await this.taskRepository.findProject(projectId);
     if (!project || project.isDeleted) {

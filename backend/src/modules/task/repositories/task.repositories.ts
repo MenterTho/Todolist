@@ -44,6 +44,17 @@ export class TaskRepository {
     .getMany();
 }
 
+async findByUser(userId: number): Promise<Task[]> {
+  return this.repository.createQueryBuilder("task")
+    .leftJoinAndSelect("task.project", "project")
+    .leftJoinAndSelect("project.workspace", "workspace")
+    .leftJoinAndSelect("task.assignee", "assignee")
+    .leftJoinAndSelect("task.creator", "creator")
+    .leftJoinAndSelect("task.comments", "comments", "comments.isDeleted = false")
+    .where("(task.creatorId = :userId OR task.assigneeId = :userId)", { userId })
+    .andWhere("task.isDeleted = false")
+    .getMany();
+}
 
   async update(id: number, updates: Partial<Task>): Promise<Task | null> {
     const task = await this.findById(id);

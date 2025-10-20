@@ -62,7 +62,38 @@ export class TaskController {
       }
     }
   }
+async getAllTasks(req: Request, res: Response) {
+  try {
+    const userId = req.user?.userId;
 
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Chưa đăng nhập",
+      });
+    }
+
+    const tasks = await this.taskService.getListTasks(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Lấy danh sách tất cả nhiệm vụ thành công",
+      data: tasks,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Lỗi không xác định",
+    });
+  }
+}
   async getTasksByProject(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
