@@ -21,7 +21,7 @@ export interface LoginResponse {
       id: number;
       email: string;
       name: string;
-      role: 'owner' | 'management' | 'member';
+      role: 'admin'|'member';
     };
   };
 }
@@ -33,7 +33,7 @@ export interface RegisterResponse {
     id: number;
     email: string;
     name: string;
-    role: 'owner' | 'management' | 'member';
+    role: 'admin' | 'member';
     avatarUrl?: string;
     phoneNumber?: string;
     createdAt: string;

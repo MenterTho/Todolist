@@ -1,20 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { createTask, getTask, getTasksByProject, updateTask, deleteTask } from '@/services/task.service';
+import { createTask, getAllTasks, getTasksByProject, updateTask, deleteTask } from '@/services/task.service';
 import { CreateTaskRequest, UpdateTaskRequest, TaskResponse, TasksResponse,DeleteTaskResponse } from '@/types/task.type';
 import { CustomApiError } from '@/utils/apiErrorHandler.util';
 import { useAuth } from './useAuth.hook';
 
-export function useTask(taskId: number) {
+export function useTasks() {
   const { isAuthenticated } = useAuth();
-  return useQuery<TaskResponse['data'], CustomApiError>({
-    queryKey: ['task', taskId],
-    queryFn: () => getTask(taskId),
-    enabled: !!taskId && isAuthenticated,
+  return useQuery<TasksResponse['data'], CustomApiError>({
+    queryKey: ['tasks'],
+    queryFn: getAllTasks,
+    enabled: isAuthenticated,
   });
 }
-
 export function useTasksByProject(projectId: number) {
   const { isAuthenticated } = useAuth();
   return useQuery<TasksResponse['data'], CustomApiError>({
