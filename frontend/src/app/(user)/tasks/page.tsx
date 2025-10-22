@@ -1,37 +1,88 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PlusCircle, Search } from "lucide-react";
 import TaskModal from "@/components/popup/editTaskModal";
-import { useTasksByProject } from "@/hooks/usetask.hook";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { useTasks, useTaskMutations } from "@/hooks/usetask.hook";
+import Loader from "@/components/ui/loader";
 import { Task } from "@/types/task.type";
+import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function TasksPage() {
-  const projectId = 1; // 👉 tạm thời hardcode (sau có thể lấy từ useParams hoặc Redux)
-  const { data: tasks = [], isLoading } = useTasksByProject(projectId);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: tasks = [], isLoading, isError } = useTasks();
+  const { updateTask } = useTaskMutations();
+  const queryClient = useQueryClient();
 
-  // ✅ Gom nhóm task theo status
-  const columns = useMemo(() => {
-    const grouped = {
-      todo: [] as Task[],
-      inprogress: [] as Task[],
-      done: [] as Task[],
-    };
+  const grouped = useMemo(() => {
+    const groups = { todo: [] as Task[], inprogress: [] as Task[], done: [] as Task[] };
     tasks.forEach((task) => {
-      const key = task.status.toLowerCase().replace(" ", "") as keyof typeof grouped;
-      if (grouped[key]) grouped[key].push(task);
+      const key =
+        task.status === "To Do"
+          ? "todo"
+          : task.status === "In Progress"
+          ? "inprogress"
+          : "done";
+      groups[key].push(task);
     });
-    return grouped;
+    return groups;
   }, [tasks]);
 
-  // 👉 xử lý kéo thả (nếu cần sau này update API)
+  //Local state để UI cập nhật ngay
+  const [localColumns, setLocalColumns] = useState(grouped);
+
+  // Khi dữ liệu từ server thay đổi đồng bộ lại local
+  useEffect(() => {
+    setLocalColumns(grouped);
+  }, [grouped]);
+
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
     if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+    const sourceCol = source.droppableId as keyof typeof localColumns;
+    const destCol = destination.droppableId as keyof typeof localColumns;
+
+    if (sourceCol === destCol && source.index === destination.index) return;
+
+    // Clone dữ liệu
+    const newColumns = {
+      todo: Array.from(localColumns.todo),
+      inprogress: Array.from(localColumns.inprogress),
+      done: Array.from(localColumns.done),
+    };
+
+    // Lấy task bị kéo
+    const [moved] = newColumns[sourceCol].splice(source.index, 1);
+
+    // Xác định status mới
+    const newStatus =
+      destCol === "todo"
+        ? "To Do"
+        : destCol === "inprogress"
+        ? "In Progress"
+        : "Done";
+
+    // Cập nhật UI trước
+    newColumns[destCol].splice(destination.index, 0, { ...moved, status: newStatus });
+    setLocalColumns(newColumns);
+
+    // Gọi API cập nhật backend
+    updateTask(
+      { taskId: moved.id, data: { status: newStatus } },
+      {
+        onSuccess: () => {
+          toast.success(`Moved to ${newStatus}`);
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        },
+        onError: () => {
+          toast.error("Không thể cập nhật trạng thái");
+          setLocalColumns(grouped);
+        },
+      }
+    );
   };
 
   const columnList = [
@@ -40,13 +91,21 @@ export default function TasksPage() {
     { id: "done", title: "Done", color: "bg-green-50" },
   ] as const;
 
-  if (isLoading) return <div className="text-center mt-10 text-gray-500">Loading tasks...</div>;
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center h-[70vh]">
+        <Loader />
+      </div>
+    );
+
+  if (isError)
+    return <div className="text-center text-red-500">Lỗi khi tải danh sách task.</div>;
 
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Project Tasks</h1>
+        <h1 className="text-2xl font-bold text-gray-800">My Tasks</h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl shadow transition"
@@ -66,7 +125,7 @@ export default function TasksPage() {
         />
       </div>
 
-      {/* Kéo thả tasks */}
+      {/* Kéo thả task */}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="flex gap-6 overflow-x-auto min-h-[70vh]">
           {columnList.map(({ id, title, color }) => (
@@ -75,17 +134,16 @@ export default function TasksPage() {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`flex-1 min-w-[300px] rounded-2xl shadow-md p-4 transition-all relative ${
+                  className={`flex-1 min-w-[300px] rounded-2xl shadow-md p-4 transition-all ${
                     snapshot.isDraggingOver ? "bg-indigo-100" : color
                   }`}
-                  style={{ minHeight: "70vh" }}
                 >
                   <h2 className="text-lg font-semibold mb-4 text-gray-800 text-center">
                     {title}
                   </h2>
 
-                  {columns[id].map((task, index) => (
-                    <Draggable draggableId={task.id.toString()} index={index} key={task.id}>
+                  {localColumns[id].map((task, index) => (
+                    <Draggable draggableId={String(task.id)} index={index} key={task.id}>
                       {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
@@ -96,12 +154,14 @@ export default function TasksPage() {
                           }`}
                           style={{
                             ...provided.draggableProps.style,
-                            userSelect: "none",
                             marginBottom: "10px",
                           }}
                         >
                           <h3 className="font-medium text-gray-800">{task.title}</h3>
                           <p className="text-sm text-gray-500 mt-1 capitalize">{task.status}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Project: {task.project?.name || "N/A"}
+                          </p>
                         </div>
                       )}
                     </Draggable>
@@ -114,7 +174,7 @@ export default function TasksPage() {
         </div>
       </DragDropContext>
 
-      {/* Popup Modal */}
+      {/* Modal */}
       {isModalOpen && <TaskModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );

@@ -31,6 +31,7 @@ export function useTaskMutations() {
     mutationFn: createTask,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', data.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Tạo nhiệm vụ thành công!');
       router.refresh();
     },
