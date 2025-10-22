@@ -56,12 +56,10 @@ async findByUser(userId: number): Promise<Task[]> {
     .getMany();
 }
 
-  async update(id: number, updates: Partial<Task>): Promise<Task | null> {
-    const task = await this.findById(id);
-    if (!task) return null;
-    Object.assign(task, updates);
-    return await this.repository.save(task);
-  }
+async update(id: number, updates: Partial<Task>): Promise<Task | null> {
+  await this.repository.update({ id }, updates);
+  return await this.findById(id);
+}
 
   async softDelete(id: number): Promise<boolean> {
     const result = await this.repository.update({ id, isDeleted: false }, { isDeleted: true });

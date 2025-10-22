@@ -97,9 +97,12 @@ export class TaskService {
         throw new Error("Bạn không được phép cập nhật nhiệm vụ này");
       }
       if (dto.status) {
-        task.status = dto.status;
-        task.updatedAt = new Date();
-        return await this.taskRepository.save(task);
+        const updatedTask = await this.taskRepository.update(id, {
+          status: dto.status,
+          updatedAt: new Date(),
+        });
+
+        return updatedTask!;
       }
       throw new Error("Bạn chỉ có thể cập nhật trạng thái của nhiệm vụ này");
     }
