@@ -2,20 +2,22 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { PlusCircle, Search } from "lucide-react";
-import TaskModal from "@/components/popup/editTaskModal";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { useTasks, useTaskMutations } from "@/hooks/usetask.hook";
-import Loader from "@/components/ui/loader";
-import { Task } from "@/types/task.type";
-import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import TaskModal from "@/components/popup/editTaskModal";
+import Loader from "@/components/ui/loader";
+import toast from "react-hot-toast";
+import { Task } from "@/types/task.type";
 
 export default function TasksPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: tasks = [], isLoading, isError } = useTasks();
   const { updateTask } = useTaskMutations();
   const queryClient = useQueryClient();
 
+  // Gom task theo status
   const grouped = useMemo(() => {
     const groups = { todo: [] as Task[], inprogress: [] as Task[], done: [] as Task[] };
     tasks.forEach((task) => {
@@ -25,17 +27,22 @@ export default function TasksPage() {
           : task.status === "In Progress"
           ? "inprogress"
           : "done";
-      groups[key].push(task);
+      if (
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.project?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
+        groups[key].push(task);
+      }
     });
     return groups;
-  }, [tasks]);
+  }, [tasks, searchTerm]);
 
-  //Local state để UI cập nhật ngay
   const [localColumns, setLocalColumns] = useState(grouped);
 
-  // Khi dữ liệu từ server thay đổi đồng bộ lại local
+  // Đồng bộ khi server thay đổi
   useEffect(() => {
-    setLocalColumns(grouped);
+    const isDifferent = JSON.stringify(localColumns) !== JSON.stringify(grouped);
+    if (isDifferent) setLocalColumns(grouped);
   }, [grouped]);
 
   const onDragEnd = (result: DropResult) => {
@@ -44,32 +51,17 @@ export default function TasksPage() {
 
     const sourceCol = source.droppableId as keyof typeof localColumns;
     const destCol = destination.droppableId as keyof typeof localColumns;
-
     if (sourceCol === destCol && source.index === destination.index) return;
 
-    // Clone dữ liệu
-    const newColumns = {
-      todo: Array.from(localColumns.todo),
-      inprogress: Array.from(localColumns.inprogress),
-      done: Array.from(localColumns.done),
-    };
-
-    // Lấy task bị kéo
+    const newColumns = structuredClone(localColumns);
     const [moved] = newColumns[sourceCol].splice(source.index, 1);
 
-    // Xác định status mới
     const newStatus =
-      destCol === "todo"
-        ? "To Do"
-        : destCol === "inprogress"
-        ? "In Progress"
-        : "Done";
+      destCol === "todo" ? "To Do" : destCol === "inprogress" ? "In Progress" : "Done";
 
-    // Cập nhật UI trước
     newColumns[destCol].splice(destination.index, 0, { ...moved, status: newStatus });
     setLocalColumns(newColumns);
 
-    // Gọi API cập nhật backend
     updateTask(
       { taskId: moved.id, data: { status: newStatus } },
       {
@@ -78,7 +70,7 @@ export default function TasksPage() {
           queryClient.invalidateQueries({ queryKey: ["tasks"] });
         },
         onError: () => {
-          toast.error("Không thể cập nhật trạng thái");
+          toast.error("Cập nhật thất bại, thử lại sau!");
           setLocalColumns(grouped);
         },
       }
@@ -86,9 +78,9 @@ export default function TasksPage() {
   };
 
   const columnList = [
-    { id: "todo", title: "To Do", color: "bg-gray-50" },
+    { id: "todo", title: "To Do", color: "bg-slate-50" },
     { id: "inprogress", title: "In Progress", color: "bg-yellow-50" },
-    { id: "done", title: "Done", color: "bg-green-50" },
+    { id: "done", title: "Done", color: "bg-emerald-50" },
   ] as const;
 
   if (isLoading)
@@ -99,48 +91,57 @@ export default function TasksPage() {
     );
 
   if (isError)
-    return <div className="text-center text-red-500">Lỗi khi tải danh sách task.</div>;
+    return (
+      <div className="text-center text-red-500">
+        Lỗi khi tải danh sách task. Vui lòng thử lại sau.
+      </div>
+    );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 p-4 md:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">My Tasks</h1>
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
+        <h1 className="text-3xl font-bold text-gray-800">My Tasks</h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl shadow transition"
+          className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow transition-all"
         >
           <PlusCircle className="w-5 h-5" />
-          Create Task
+          New Task
         </button>
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+      <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
         <Search className="text-gray-400 w-5 h-5" />
         <input
           type="text"
-          placeholder="Search tasks..."
-          className="w-full outline-none bg-transparent"
+          placeholder="Search tasks or project..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full outline-none bg-transparent text-gray-700"
         />
       </div>
 
-      {/* Kéo thả task */}
+      {/* Board */}
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-6 overflow-x-auto min-h-[70vh]">
+        <div className="flex gap-6 overflow-x-auto pb-4 min-h-[70vh]">
           {columnList.map(({ id, title, color }) => (
             <Droppable droppableId={id} key={id}>
               {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`flex-1 min-w-[300px] rounded-2xl shadow-md p-4 transition-all ${
+                  className={`flex-1 min-w-[300px] max-w-[400px] rounded-2xl border border-gray-100 p-4 transition-all duration-200 ${
                     snapshot.isDraggingOver ? "bg-indigo-100" : color
                   }`}
                 >
-                  <h2 className="text-lg font-semibold mb-4 text-gray-800 text-center">
-                    {title}
-                  </h2>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold text-gray-700">{title}</h2>
+                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-lg shadow-sm">
+                      {localColumns[id].length}
+                    </span>
+                  </div>
 
                   {localColumns[id].map((task, index) => (
                     <Draggable draggableId={String(task.id)} index={index} key={task.id}>
@@ -149,8 +150,8 @@ export default function TasksPage() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`bg-white border rounded-xl p-3 shadow-sm hover:shadow-md transition cursor-grab ${
-                            snapshot.isDragging ? "rotate-1 scale-[1.03]" : ""
+                          className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-transform ${
+                            snapshot.isDragging ? "scale-[1.03]" : ""
                           }`}
                           style={{
                             ...provided.draggableProps.style,
@@ -158,7 +159,20 @@ export default function TasksPage() {
                           }}
                         >
                           <h3 className="font-medium text-gray-800">{task.title}</h3>
-                          <p className="text-sm text-gray-500 mt-1 capitalize">{task.status}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Status:{" "}
+                            <span
+                              className={`font-medium ${
+                                task.status === "Done"
+                                  ? "text-emerald-600"
+                                  : task.status === "In Progress"
+                                  ? "text-yellow-600"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {task.status}
+                            </span>
+                          </p>
                           <p className="text-xs text-gray-400 mt-1">
                             Project: {task.project?.name || "N/A"}
                           </p>
