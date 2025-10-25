@@ -9,6 +9,7 @@ import TaskModal from "@/components/popup/editTaskModal";
 import Loader from "@/components/ui/loader";
 import toast from "react-hot-toast";
 import { Task } from "@/types/task.type";
+import { useRouter } from "next/navigation";
 
 export default function TasksPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,35 +17,38 @@ export default function TasksPage() {
   const { data: tasks = [], isLoading, isError } = useTasks();
   const { updateTask } = useTaskMutations();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   // Gom task theo status
   const grouped = useMemo(() => {
     const groups = { todo: [] as Task[], inprogress: [] as Task[], done: [] as Task[] };
-    tasks.forEach((task) => {
+
+    for (const task of tasks) {
       const key =
         task.status === "To Do"
           ? "todo"
           : task.status === "In Progress"
           ? "inprogress"
           : "done";
+
       if (
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.project?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       ) {
         groups[key].push(task);
       }
-    });
+    }
+
     return groups;
   }, [tasks, searchTerm]);
 
+  // Dùng tasks làm trigger chứ không dùng grouped (để tránh render loop)
   const [localColumns, setLocalColumns] = useState(grouped);
-
-  // Đồng bộ khi server thay đổi
   useEffect(() => {
-    const isDifferent = JSON.stringify(localColumns) !== JSON.stringify(grouped);
-    if (isDifferent) setLocalColumns(grouped);
-  }, [grouped]);
+    setLocalColumns(grouped);
+  }, [tasks, searchTerm]);
 
+  // Handle drag & drop
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -55,7 +59,6 @@ export default function TasksPage() {
 
     const newColumns = structuredClone(localColumns);
     const [moved] = newColumns[sourceCol].splice(source.index, 1);
-
     const newStatus =
       destCol === "todo" ? "To Do" : destCol === "inprogress" ? "In Progress" : "Done";
 
@@ -150,7 +153,8 @@ export default function TasksPage() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-transform ${
+                          onClick={() => router.push(`/tasks/${task.id}`)} 
+                          className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-transform cursor-pointer ${
                             snapshot.isDragging ? "scale-[1.03]" : ""
                           }`}
                           style={{
@@ -180,6 +184,7 @@ export default function TasksPage() {
                       )}
                     </Draggable>
                   ))}
+
                   {provided.placeholder}
                 </div>
               )}

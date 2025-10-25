@@ -3,9 +3,9 @@ import { AxiosResponse, AxiosError } from 'axios';
 import { CreateCommentRequest, UpdateCommentRequest, CommentResponse, CommentsResponse, DeleteCommentResponse } from '@/types/comment.type';
 import { handleApiError, CustomApiError, ApiErrorResponse } from '@/utils/apiErrorHandler.util';
 
-export async function createComment(taskId: number, data: CreateCommentRequest): Promise<CommentResponse['data']> {
+export async function createComment(data: CreateCommentRequest): Promise<CommentResponse['data']> {
   try {
-    const response: AxiosResponse<CommentResponse> = await api.post(`/comment/task/${taskId}/comment`, {
+    const response: AxiosResponse<CommentResponse> = await api.post(`/comment/task/${data.taskId}/comment`, {
       content: data.content,
       parentId: data.parentId,
     });
