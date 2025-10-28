@@ -153,7 +153,7 @@ export default function TasksPage() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          onClick={() => router.push(`/tasks/${task.id}`)} 
+                          onClick={() => router.push(`/task/${task.id}`)} 
                           className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-transform cursor-pointer ${
                             snapshot.isDragging ? "scale-[1.03]" : ""
                           }`}

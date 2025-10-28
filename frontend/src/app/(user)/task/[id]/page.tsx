@@ -21,8 +21,8 @@ import { Comment } from "@/types/comment.type";
 import Loader from "@/components/ui/loader";
 
 export default function TaskDetailPage() {
-  const { taskId } = useParams();
-  const numericTaskId = Number(taskId);
+  const { id } = useParams();
+  const numericTaskId = Number(id);
 
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -33,11 +33,17 @@ export default function TaskDetailPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
 
-  const { data: comments = [], isLoading: isLoadingComments } = useCommentsByTask(numericTaskId);
+  const { data: comments = [], isLoading: isLoadingComments } =
+    useCommentsByTask(numericTaskId);
+
   const { createComment, updateComment, deleteComment } = useCommentMutations();
 
-  // Lấy chi tiết Task
+  // Fetch task detail
   useEffect(() => {
+    console.log(id,"task id")
+    console.log(task, "task")
+    console.log("Task ID param:", numericTaskId);
+console.log("Task:", task);
     const fetchTask = async () => {
       try {
         const data = await getTask(numericTaskId);
@@ -53,9 +59,10 @@ export default function TaskDetailPage() {
     if (numericTaskId) fetchTask();
   }, [numericTaskId]);
 
-  //Thêm bình luận mới
+  // Add comment
   const handleAddComment = () => {
-    if (!commentText.trim()) return toast.error("Vui lòng nhập nội dung bình luận");
+    if (!commentText.trim())
+      return toast.error("Vui lòng nhập nội dung bình luận");
 
     createComment(
       { taskId: numericTaskId, content: commentText },
@@ -68,22 +75,19 @@ export default function TaskDetailPage() {
     );
   };
 
-  // Bắt đầu chỉnh sửa bình luận
+  // Edit comment
   const handleEditComment = (comment: Comment) => {
     setEditingId(comment.id);
     setEditingContent(comment.content);
   };
 
-  // Lưu chỉnh sửa bình luận
   const handleSaveEdit = () => {
-    if (!editingContent.trim()) return toast.error("Nội dung không được để trống");
+    if (!editingContent.trim())
+      return toast.error("Nội dung không được để trống");
     if (!editingId) return;
 
     updateComment(
-      {
-        commentId: editingId,
-        data: { content: editingContent },
-      },
+      { commentId: editingId, data: { content: editingContent } },
       {
         onSuccess: () => {
           setEditingId(null);
@@ -94,7 +98,7 @@ export default function TaskDetailPage() {
     );
   };
 
-  // Xóa bình luận
+  // Delete comment
   const handleDeleteComment = (commentId: number) => {
     deleteComment(
       { commentId, taskId: numericTaskId },
@@ -107,7 +111,7 @@ export default function TaskDetailPage() {
     );
   };
 
-  //  Kiểm tra quyền chỉnh sửa/xóa
+  // 
   const canModify = (comment: Comment): boolean => {
     if (!user) return false;
     if (comment.author?.id === user.id) return true;
@@ -115,7 +119,7 @@ export default function TaskDetailPage() {
     return false;
   };
 
-  // Hiển thị trạng thái tải
+  // Loading state
   if (loading)
     return (
       <div className="flex justify-center items-center h-[70vh]">
@@ -132,22 +136,30 @@ export default function TaskDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-md">
-      {/* 🏷 Header nhiệm vụ */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{task.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            {task.title}
+          </h1>
           <p className="text-gray-500">
             Dự án:{" "}
-            <span className="font-medium text-indigo-600">{task.project?.name}</span>
+            <span className="font-medium text-indigo-600">
+              {task.project?.name}
+            </span>
           </p>
           <p className="text-gray-500 mt-1">
             Người tạo:{" "}
-            <span className="font-medium text-gray-700">{task.creator?.name}</span>
+            <span className="font-medium text-gray-700">
+              {task.creator?.name}
+            </span>
           </p>
           {task.assignee && (
             <p className="text-gray-500 mt-1">
               Người được giao:{" "}
-              <span className="font-medium text-gray-700">{task.assignee.name}</span>
+              <span className="font-medium text-gray-700">
+                {task.assignee.name}
+              </span>
             </p>
           )}
         </div>
@@ -167,7 +179,7 @@ export default function TaskDetailPage() {
         </div>
       </div>
 
-      {/* Mô tả nhiệm vụ */}
+      {/* Description */}
       {task.description && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-2">Mô tả</h2>
@@ -175,14 +187,14 @@ export default function TaskDetailPage() {
         </div>
       )}
 
-      {/* Phần bình luận */}
+      {/* Comments */}
       <div className="border-t pt-5">
         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2 mb-4">
           <MessageSquare className="w-5 h-5 text-indigo-500" />
           Bình luận ({comments.length})
         </h2>
 
-        {/* Form nhập bình luận */}
+        {/* Comment input */}
         <div className="flex gap-3 mb-6">
           <input
             type="text"
@@ -200,7 +212,7 @@ export default function TaskDetailPage() {
           </button>
         </div>
 
-        {/* Danh sách bình luận */}
+        {/* Comment list */}
         <div className="space-y-4">
           {isLoadingComments ? (
             <Loader />

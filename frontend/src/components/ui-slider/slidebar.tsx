@@ -9,7 +9,7 @@ export default function Sidebar() {
           { href: "/dashboard", icon: "/images/dashboard/dashboard.png", label: "Dashboard" },
           { href: "/workspace", icon: "/images/dashboard/workspace.png", label: "Workspace" },
           { href: "/projects", icon: "/images/dashboard/projects.png", label: "Projects" },
-          { href: "/tasks", icon: "/images/dashboard/tasks.png", label: "Tasks" }
+          { href: "/task", icon: "/images/dashboard/tasks.png", label: "Tasks" }
         ].map(({ href, icon, label }) => (
           <Link
             key={href}
