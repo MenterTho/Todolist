@@ -24,8 +24,8 @@ export class User {
   @Column({ length: 100 })
   name!: string;
 
-  @Column({ length: 255, nullable: true })
-  fcmToken?: string; // FCM
+  // @Column({ length: 255, nullable: true })
+  // fcmToken?: string; // FCM
 
   @Column({ unique: true, length: 20, nullable: true })
   phoneNumber?: string;

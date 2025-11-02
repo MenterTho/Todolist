@@ -2,9 +2,10 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../../../common/config/db.config";
 import { CreateNotificationDto } from "../dtos/createNotification.dto";
 import { Notification, NotificationType } from "../models/notification.model";
-import { getMessaging } from "../../../common/config/firebase.config";
 import { User } from "../../auth/model/auth.model";
 import { NotificationRepository } from "../repositories/notification.repositories";
+import { sendEmail } from "../../../common/config/email.config";
+import { getNotificationUrl } from "../../../utils/notification.util";
 
 export class NotificationService {
   private notificationRepository: NotificationRepository;
@@ -16,7 +17,7 @@ export class NotificationService {
   }
 
   async create(dto: CreateNotificationDto): Promise<Notification> {
-    // Validate related entities based on notification type
+    let taskIdForComment: number | undefined;
     if (dto.type === NotificationType.TASK_ASSIGN) {
       const task = await this.notificationRepository.findTask(dto.relatedId);
       if (!task || task.isDeleted) {
@@ -25,11 +26,15 @@ export class NotificationService {
       if (!task.project || !task.project.workspace) {
         throw new Error("Nhiệm vụ không thuộc dự án hoặc không gian làm việc hợp lệ");
       }
-      const userWorkspace = await this.notificationRepository.findUserWorkspace(dto.recipientId, task.project.workspaceId);
+      const userWorkspace = await this.notificationRepository.findUserWorkspace(
+        dto.recipientId,
+        task.project.workspaceId
+      );
       if (!userWorkspace || userWorkspace.isDeleted) {
         throw new Error("Người dùng không phải là thành viên của không gian làm việc này");
       }
-    } else if (dto.type === NotificationType.COMMENT) {
+    } 
+    else if (dto.type === NotificationType.COMMENT) {
       const comment = await this.notificationRepository.findComment(dto.relatedId);
       if (!comment || comment.isDeleted) {
         throw new Error("Không tìm thấy hoặc bình luận đã bị xóa");
@@ -37,22 +42,31 @@ export class NotificationService {
       if (!comment.task.project || !comment.task.project.workspace) {
         throw new Error("Bình luận không thuộc dự án hoặc không gian làm việc hợp lệ");
       }
-      const userWorkspace = await this.notificationRepository.findUserWorkspace(dto.recipientId, comment.task.project.workspaceId);
+      const userWorkspace = await this.notificationRepository.findUserWorkspace(
+        dto.recipientId,
+        comment.task.project.workspaceId
+      );
       if (!userWorkspace || userWorkspace.isDeleted) {
         throw new Error("Người dùng không phải là thành viên của không gian làm việc này");
       }
-    } else if (dto.type === NotificationType.INVITE) {
-      const userWorkspace = await this.notificationRepository.findUserWorkspace(dto.recipientId, dto.relatedId);
+
+      taskIdForComment = comment.taskId;
+    } 
+    else if (dto.type === NotificationType.INVITE) {
+      const userWorkspace = await this.notificationRepository.findUserWorkspace(
+        dto.recipientId,
+        dto.relatedId
+      );
       if (!userWorkspace || userWorkspace.isDeleted) {
         throw new Error("Không tìm thấy lời mời vào không gian làm việc");
       }
-    } else if (dto.type === NotificationType.WORKSPACE || dto.type === NotificationType.PROJECT) {
-      // No additional validation needed for WORKSPACE or PROJECT types
-    } else {
+    } 
+    else if (dto.type === NotificationType.WORKSPACE || dto.type === NotificationType.PROJECT) {
+    } 
+    else {
       throw new Error("Loại thông báo không hợp lệ");
     }
 
-    // Save notification to database
     const notification = await this.notificationRepository.save({
       message: dto.message,
       recipientId: dto.recipientId,
@@ -64,26 +78,37 @@ export class NotificationService {
       updatedAt: new Date(),
     });
 
-    // Send push notification via FCM
-    const user = await this.userRepository.findOne({ where: { id: dto.recipientId, isDeleted: false } });
-    if (user && user.fcmToken) {
-      const message = {
-        notification: {
-          title: `Thông báo mới: ${dto.type}`,
-          body: dto.message,
-        },
-        token: user.fcmToken,
-      };
+    const detailUrl = getNotificationUrl(dto.type, dto.relatedId, {
+      taskId: taskIdForComment,
+    });
+
+    const recipient = await this.userRepository.findOne({
+      where: { id: dto.recipientId, isDeleted: false },
+      select: ["email", "name"],
+    });
+
+    if (recipient?.email) {
+      const subject = `Thông báo mới: ${dto.type}`;
+      const html = `
+        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #f9f9f9;">
+          <h2 style="color: #1a73e8; margin-top: 0;">${dto.message}</h2>
+          <p><strong>Loại thông báo:</strong> <span style="color: #555; font-weight: 500;">${dto.type}</span></p>
+          <p>
+            <a href="${detailUrl}" 
+               style="background: #1a73e8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 15px;">
+              Xem chi tiết
+            </a>
+          </p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+          <small style="color: #888; font-size: 12px;">Đây là email tự động từ TaskFlow. Vui lòng không trả lời.</small>
+        </div>
+      `;
 
       try {
-        const messaging = getMessaging();
-        await messaging.send(message);
-        console.log(`Đã gửi thông báo đẩy đến user ${dto.recipientId}`);
-      } catch (error: any) {
-        if (error.code === "messaging/registration-token-not-registered") {
-          await this.userRepository.update(dto.recipientId, { fcmToken: undefined });
-        }
-        console.error("Lỗi khi gửi thông báo đẩy:", error);
+        await sendEmail(recipient.email, subject, html);
+        console.log(`[Notification] Email sent to ${recipient.email} → ${detailUrl}`);
+      } catch (error) {
+        console.error("[Notification] Failed to send email:", error);
       }
     }
 
@@ -91,8 +116,7 @@ export class NotificationService {
   }
 
   async getNotifications(recipientId: number): Promise<Notification[]> {
-    const notifications = await this.notificationRepository.findByUser(recipientId);
-    return notifications;
+    return await this.notificationRepository.findByUser(recipientId);
   }
 
   async markAsRead(id: number, recipientId: number): Promise<Notification> {
@@ -104,16 +128,13 @@ export class NotificationService {
       throw new Error("Bạn chỉ có thể đánh dấu thông báo của chính mình");
     }
 
-    const updatedNotification = await this.notificationRepository.update(id, {
+    const updated = await this.notificationRepository.update(id, {
       isRead: true,
       updatedAt: new Date(),
     });
 
-    if (!updatedNotification) {
-      throw new Error("Đánh dấu thông báo thất bại");
-    }
-
-    return updatedNotification;
+    if (!updated) throw new Error("Đánh dấu thất bại");
+    return updated;
   }
 
   async delete(id: number, recipientId: number): Promise<{ message: string }> {
@@ -126,9 +147,7 @@ export class NotificationService {
     }
 
     const success = await this.notificationRepository.softDelete(id);
-    if (!success) {
-      throw new Error("Xóa thông báo thất bại");
-    }
+    if (!success) throw new Error("Xóa thất bại");
 
     return { message: "Xóa thông báo thành công" };
   }

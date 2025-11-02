@@ -246,17 +246,17 @@ export class AuthService {
 
     return { message: "Password reset successfully" };
   }
-  async updateFcmToken(userId: number, dto: UpdateFcmTokenDto): Promise<{ message: string }> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new Error("Không tìm thấy người dùng");
-    }
+  // async updateFcmToken(userId: number, dto: UpdateFcmTokenDto): Promise<{ message: string }> {
+  //   const user = await this.userRepository.findById(userId);
+  //   if (!user) {
+  //     throw new Error("Không tìm thấy người dùng");
+  //   }
 
-    const success = await this.userRepository.updateFcmToken(userId, dto.fcmToken);
-    if (!success) {
-      throw new Error("Cập nhật fcmToken thất bại");
-    }
+  //   const success = await this.userRepository.updateFcmToken(userId, dto.fcmToken);
+  //   if (!success) {
+  //     throw new Error("Cập nhật fcmToken thất bại");
+  //   }
 
-    return { message: "Cập nhật fcmToken thành công" };
-  }
+  //   return { message: "Cập nhật fcmToken thành công" };
+  // }
 }

@@ -6,7 +6,7 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { initDB } from "./common/config/db.config";
 import { configureCloudinary } from "./common/config/cloudinary.config";
-import { initializeFirebase } from "./common/config/firebase.config";
+// import { initializeFirebase } from "./common/config/firebase.config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/user.module";
 import { WorkspaceModule } from "./modules/workspace/workspace.module";
@@ -39,7 +39,7 @@ const startServer = async () => {
       || !process.env.CLOUDINARY_CLOUD_NAME ||!process.env.CLOUDINARY_API_KEY ||!process.env.CLOUDINARY_API_SECRET) {
       throw new Error("Missing required environment variables");
     }
-    initializeFirebase();
+    // initializeFirebase();
     configureCloudinary();
     await initDB();
 
