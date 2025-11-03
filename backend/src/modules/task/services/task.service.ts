@@ -3,14 +3,18 @@ import { CreateTaskDto } from "../dtos/createTask.dto";
 import { UpdateTaskDto } from "../dtos/updateTask.dto";
 import { Task } from "../model/task.model";
 import { TaskRepository } from "../repositories/task.repositories";
+import { NotificationService } from '../../notification/services/notification.service';
+import { NotificationType } from '../../notification/models/notification.model';
 
 export class TaskService {
   private taskRepository: TaskRepository;
   private userRepository: UserRepository;
+  private notificationService: NotificationService
 
   constructor() {
     this.taskRepository = new TaskRepository();
     this.userRepository = new UserRepository();
+    this.notificationService = new NotificationService();
   }
 
   async create(dto: CreateTaskDto, userId: number): Promise<Task> {
@@ -34,7 +38,7 @@ export class TaskService {
         throw new Error("Người được gán không phải là thành viên của không gian làm việc này");
       }
     }
-
+    
     const task = await this.taskRepository.save({
       title: dto.title,
       description: dto.description,
@@ -48,7 +52,15 @@ export class TaskService {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-
+    // Send mail 
+    if (dto.assigneeId && dto.assigneeId !== userId) {
+      await this.notificationService.create({
+        message: `Bạn được giao nhiệm vụ: "${dto.title}"`,
+        recipientId: dto.assigneeId,
+        type: NotificationType.TASK_ASSIGN,
+        relatedId: task.id,
+      })
+    }
     return task;
   }
 
@@ -120,7 +132,7 @@ export class TaskService {
         throw new Error("Người được gán không phải là thành viên của không gian làm việc này");
       }
     }
-
+    
     const updatedTask = await this.taskRepository.update(id, {
       title: dto.title,
       description: dto.description,
@@ -134,7 +146,14 @@ export class TaskService {
     if (!updatedTask) {
       throw new Error("Cập nhật nhiệm vụ thất bại");
     }
-
+    if (dto.assigneeId && dto.assigneeId !== userId) {
+      await this.notificationService.create({
+        message: `Thông báo Task được cập nhật: "${dto.title}"`,
+        recipientId: dto.assigneeId,
+        type: NotificationType.TASK_ASSIGN,
+        relatedId: task.id,
+      })
+    }
     return updatedTask;
   }
 

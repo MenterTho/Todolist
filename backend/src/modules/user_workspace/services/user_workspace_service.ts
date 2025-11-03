@@ -48,7 +48,12 @@ export class UserWorkspaceService {
       role: dto.role,
       joinedAt: new Date(),
     });
-
+      await this.notificationService.create({
+          message: `Bạn được mời tham gia không gian làm việc: "${workspace.name}"`,
+          recipientId: user.id,
+          type: NotificationType.INVITE,
+          relatedId: workspaceId, 
+        });
     return { message: `Mời ${dto.email} vào không gian làm việc thành công` };
   }
 

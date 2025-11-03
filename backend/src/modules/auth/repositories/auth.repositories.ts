@@ -85,11 +85,11 @@ export class UserRepository {
     return result.affected ? result.affected > 0 : false;
   }
   //FCM 
-  async updateFcmToken(userId: number, fcmToken: string): Promise<boolean> {
-    const result = await this.repository.update(
-      { id: userId, isDeleted: false },
-      { fcmToken, updatedAt: new Date() }
-    );
-    return result.affected ? result.affected > 0 : false;
-  }
+  // async updateFcmToken(userId: number, fcmToken: string): Promise<boolean> {
+  //   const result = await this.repository.update(
+  //     { id: userId, isDeleted: false },
+  //     { fcmToken, updatedAt: new Date() }
+  //   );
+  //   return result.affected ? result.affected > 0 : false;
+  // }
 }

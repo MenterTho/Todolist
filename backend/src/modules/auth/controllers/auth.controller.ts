@@ -84,36 +84,36 @@ export class AuthController {
       }
     }
   }
-  async updateFcmToken(req: Request, res: Response) {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
-      }
+  // async updateFcmToken(req: Request, res: Response) {
+  //   try {
+  //     const userId = req.user?.userId;
+  //     if (!userId) {
+  //       return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
+  //     }
 
-      const dto = plainToInstance(UpdateFcmTokenDto, req.body);
-      const errors = await validate(dto);
-      if (errors.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Dữ liệu không hợp lệ",
-          errors: errors.map((e) => e.toString()),
-        });
-      }
+  //     const dto = plainToInstance(UpdateFcmTokenDto, req.body);
+  //     const errors = await validate(dto);
+  //     if (errors.length > 0) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: "Dữ liệu không hợp lệ",
+  //         errors: errors.map((e) => e.toString()),
+  //       });
+  //     }
 
-      const result = await this.authService.updateFcmToken(userId, dto);
-      res.status(200).json({
-        success: true,
-        message: result.message,
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ success: false, message: error.message });
-      } else {
-        res.status(400).json({ success: false, message: "Lỗi không xác định" });
-      }
-    }
-  }
+  //     const result = await this.authService.updateFcmToken(userId, dto);
+  //     res.status(200).json({
+  //       success: true,
+  //       message: result.message,
+  //     });
+  //   } catch (error) {
+  //     if (error instanceof Error) {
+  //       res.status(400).json({ success: false, message: error.message });
+  //     } else {
+  //       res.status(400).json({ success: false, message: "Lỗi không xác định" });
+  //     }
+  //   }
+  // }
   async refreshToken(req: Request, res: Response) {
     try {
       const refreshToken = req.cookies.refreshToken;

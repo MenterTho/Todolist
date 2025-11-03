@@ -2,12 +2,15 @@ import { CreateCommentDto } from "../dtos/createComment.dto";
 import { UpdateCommentDto } from "../dtos/updateComment.dto";
 import { Comment } from "../model/comment.model";
 import { CommentRepository } from "../repositories/comment.repositories";
+import { NotificationService } from "../../notification/services/notification.service";
+import { NotificationType } from "../../notification/models/notification.model";
 
 export class CommentService {
   private commentRepository: CommentRepository;
-
+  private notificationService: NotificationService
   constructor() {
     this.commentRepository = new CommentRepository();
+    this.notificationService = new NotificationService();
   }
 
   async create(dto: CreateCommentDto, taskId: number, userId: number): Promise<Comment> {
@@ -124,8 +127,8 @@ export class CommentService {
       throw new Error("Người dùng không phải là thành viên của không gian làm việc này");
     }
 
-    if (comment.authorId !== userId && userWorkspace.role !== "admin") {
-      throw new Error("Bạn chỉ có thể xóa bình luận của chính mình hoặc nếu bạn là admin");
+    if (comment.authorId !== userId && userWorkspace.role !== "owner") {
+      throw new Error("Bạn chỉ có thể xóa bình luận của chính mình hoặc nếu bạn là owner");
     }
 
     const success = await this.commentRepository.softDelete(id);
