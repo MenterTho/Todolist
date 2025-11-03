@@ -17,10 +17,8 @@ export default function Navbar() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const notificationCount = 3;
 
-  // Tránh hydration mismatch
   useEffect(() => setIsMounted(true), []);
 
-  // Click outside để đóng dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

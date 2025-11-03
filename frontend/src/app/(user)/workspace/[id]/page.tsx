@@ -22,7 +22,7 @@ export default function WorkspaceDetailPage() {
   const params = useParams();
   const workspaceId = Number(params.id);
 
-  const { user: currentUser } = useAuth(); // lấy current user
+  const { user: currentUser } = useAuth(); 
   const currentUserId = currentUser?.id;
 
   const { data: workspace, isLoading, isError } = useGetWorkspaceQuery(workspaceId);

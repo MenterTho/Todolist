@@ -1,120 +1,227 @@
 "use client";
-import { FaUsers, FaSignal, FaHeartbeat, FaExclamationTriangle, FaUserPlus, FaFileExport } from "react-icons/fa";
-import { useAuth } from "@/hooks/useAuth.hook";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  FaUsers,
+  FaProjectDiagram,
+  FaTasks,
+  FaBuilding,
+  FaFireAlt,
+} from "react-icons/fa";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function DashboardPage() {
-  const { isAuthenticated, isProfileLoading } = useAuth();
-  const router = useRouter();
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalWorkspaces: 0,
+    totalProjects: 0,
+    totalTasks: 0,
+  });
+
+  const [chartData, setChartData] = useState<
+    { name: string; tasks: number; projects: number }[]
+  >([]);
 
   useEffect(() => {
-    const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('accessToken');
-    console.log('DashboardPage useEffect:', { isAuthenticated, isProfileLoading, hasToken });
-    if (!isAuthenticated && !isProfileLoading && !hasToken) {
-      console.log('Redirecting to /login');
-      router.push("/login");
-    }
-  }, [isAuthenticated, isProfileLoading, router]);
+    const timeout = setTimeout(() => {
+      setStats({
+        totalUsers: 1258,
+        totalWorkspaces: 12,
+        totalProjects: 37,
+        totalTasks: 245,
+      });
+
+      setChartData([
+        { name: "T1", tasks: 120, projects: 10 },
+        { name: "T2", tasks: 200, projects: 15 },
+        { name: "T3", tasks: 170, projects: 12 },
+        { name: "T4", tasks: 250, projects: 18 },
+        { name: "T5", tasks: 300, projects: 20 },
+        { name: "T6", tasks: 280, projects: 22 },
+      ]);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-semibold text-gray-800">
+          Welcome Back 👋
+        </h1>
+        <span className="text-gray-500 text-sm">
+          Cập nhật lần cuối: {new Date().toLocaleDateString("vi-VN")}
+        </span>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card title="Total Users" value="1,248" icon={<FaUsers className="text-indigo-500 text-3xl" />} />
-        <Card title="Active Sessions" value="342" icon={<FaSignal className="text-green-500 text-3xl" />} />
-        <Card title="System Health" value="98%" icon={<FaHeartbeat className="text-red-500 text-3xl" />} />
-        <Card title="Recent Alerts" value="5" icon={<FaExclamationTriangle className="text-yellow-500 text-3xl" />} />
+        <StatCard
+          title="Total Users"
+          value={stats.totalUsers}
+          icon={<FaUsers className="text-sky-500 text-3xl" />}
+        />
+        <StatCard
+          title="Workspaces"
+          value={stats.totalWorkspaces}
+          icon={<FaBuilding className="text-teal-500 text-3xl" />}
+        />
+        <StatCard
+          title="Projects"
+          value={stats.totalProjects}
+          icon={<FaProjectDiagram className="text-emerald-500 text-3xl" />}
+        />
+        <StatCard
+          title="Tasks"
+          value={stats.totalTasks}
+          icon={<FaTasks className="text-blue-500 text-3xl" />}
+        />
       </div>
 
-      {/* Main Grid */}
+      {/* Middle Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Activity Chart */}
-          <section className="bg-white shadow rounded-xl p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold">Activity Overview</h3>
-              <select className="bg-gray-100 border rounded px-2 py-1">
-                <option>Last 7 Days</option>
-                <option>Last 30 Days</option>
-                <option>Last 90 Days</option>
-              </select>
-            </div>
-            <div className="h-40 flex items-center justify-center text-gray-400">
-              [Activity Chart Placeholder]
-            </div>
-          </section>
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="lg:col-span-2 bg-white shadow rounded-xl p-6"
+        >
+          <h3 className="font-semibold mb-4 text-gray-700">
+            Activity Overview
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <XAxis dataKey="name" stroke="#555" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="tasks"
+                  stroke="#0ea5e9"
+                  strokeWidth={3}
+                  dot={{ r: 5 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="projects"
+                  stroke="#14b8a6"
+                  strokeWidth={3}
+                  dot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.section>
 
-          {/* Recent Actions */}
-          <section className="bg-white shadow rounded-xl p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold">Recent Actions</h3>
-              <button className="text-indigo-500">View All</button>
-            </div>
-            <div className="space-y-3">
-              <ActionItem icon={<FaUserPlus className="text-indigo-500" />} text="New user registered" time="2 minutes ago" />
-              <ActionItem icon={<FaFileExport className="text-green-500" />} text="Document uploaded" time="15 minutes ago" />
-            </div>
-          </section>
-        </div>
-
-        {/* Right */}
-        <div className="space-y-6">
-          {/* System Status */}
-          <section className="bg-white shadow rounded-xl p-4">
-            <h3 className="font-semibold mb-4">System Status</h3>
-            <StatusItem label="Server Uptime" value="99.9%" valueClass="text-green-600" />
-            <StatusItem label="CPU Usage" value="32%" />
-            <StatusItem label="Memory Usage" value="45%" />
-          </section>
-
-          {/* Quick Actions */}
-          <section className="bg-white shadow rounded-xl p-4 space-y-3">
-            <button className="w-full flex items-center justify-center space-x-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg py-2">
-              <FaUserPlus />
-              <span>Add User</span>
-            </button>
-            <button className="w-full flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-400 text-white rounded-lg py-2">
-              <FaFileExport />
-              <span>Export Data</span>
-            </button>
-          </section>
-        </div>
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.6 }}
+          className="bg-white shadow rounded-xl p-6"
+        >
+          <h3 className="font-semibold mb-4 text-gray-700">Top Projects</h3>
+          <div className="space-y-4">
+            <TopProject name="Redesign Website" progress={85} />
+            <TopProject name="Mobile App Launch" progress={70} />
+            <TopProject name="Marketing Campaign" progress={60} />
+          </div>
+        </motion.section>
       </div>
+
+      {/* Performance Overview */}
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
+        className="bg-gradient-to-r from-teal-400 via-sky-400 to-blue-500 rounded-xl text-white p-6 shadow"
+      >
+        <div className="flex items-center space-x-4 mb-4">
+          <FaFireAlt className="text-4xl animate-bounce" />
+          <div>
+            <h3 className="text-lg font-semibold">Performance Overview</h3>
+            <p className="text-sm opacity-80">
+              Tình hình hoạt động trong tháng
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <PerformanceItem label="Completion Rate" value="92%" />
+          <PerformanceItem label="On-Time Tasks" value="88%" />
+          <PerformanceItem label="Avg. Response" value="1.3h" />
+          <PerformanceItem label="New Members" value="+24" />
+        </div>
+      </motion.section>
     </div>
   );
 }
 
-function Card({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
+function StatCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+}) {
   return (
-    <div className="bg-white shadow rounded-xl p-4 flex justify-between items-center">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white shadow rounded-xl p-5 flex justify-between items-center hover:shadow-md transition-all duration-300"
+    >
       <div>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold text-gray-800">{value}</div>
         <div className="text-gray-500">{title}</div>
       </div>
       {icon}
-    </div>
+    </motion.div>
   );
 }
 
-function ActionItem({ icon, text, time }: { icon: React.ReactNode; text: string; time: string }) {
+function TopProject({ name, progress }: { name: string; progress: number }) {
   return (
-    <div className="flex items-center space-x-3">
-      {icon}
-      <div>
-        <div>{text}</div>
-        <div className="text-sm text-gray-500">{time}</div>
+    <div>
+      <div className="flex justify-between mb-1 text-sm font-medium text-gray-600">
+        <span>{name}</span>
+        <span>{progress}%</span>
+      </div>
+      <div className="w-full bg-gray-200 h-2 rounded-full">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.8 }}
+          className="bg-sky-500 h-2 rounded-full"
+        />
       </div>
     </div>
   );
 }
 
-function StatusItem({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
+function PerformanceItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="flex justify-between">
-      <span>{label}</span>
-      <span className={valueClass}>{value}</span>
+    <div className="text-center bg-white/10 backdrop-blur-sm p-4 rounded-lg">
+      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-sm opacity-90">{label}</div>
     </div>
   );
 }

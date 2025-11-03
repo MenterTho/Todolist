@@ -6,6 +6,7 @@ import { UserProfile } from "@/types/user.type";
 import { updateProfile } from "@/services/user.service";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
+import { useAuth } from "@/hooks/useAuth.hook";
 import { CustomApiError } from "@/utils/apiErrorHandler.util";
 
 interface ProfilePopupProps {
@@ -34,7 +35,7 @@ export default function ProfilePopup({
     phoneNumber: user?.phoneNumber ?? "",
     avatar: null,
   });
-
+  const { logout, isLoading: isLogoutLoading } = useAuth();
   if (!isOpen || !user) return null;
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -63,6 +64,7 @@ export default function ProfilePopup({
       toast.success("Cập nhật hồ sơ thành công!");
       setIsEditing(false);
       onUpdated?.(updatedUser);
+      onClose();
     } catch (error) {
       const err = error as AxiosError<CustomApiError>;
       const message =
@@ -72,6 +74,10 @@ export default function ProfilePopup({
     } finally {
       setLoading(false);
     }
+  };
+  const handleLogout = (): void => {
+    toast.loading("Đang đăng xuất...");
+    logout(); 
   };
 
   return (
@@ -181,11 +187,19 @@ export default function ProfilePopup({
                     Chỉnh sửa hồ sơ
                   </button>
                   <button
+                    onClick={handleLogout}
+                    disabled={isLogoutLoading}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition"
+                  >
+                    {isLogoutLoading ? "Đang đăng xuất..." : "Đăng xuất"}
+                  </button>
+                  <button
                     onClick={onClose}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition"
                   >
                     Đóng
                   </button>
+                  
                 </>
               ) : (
                 <>

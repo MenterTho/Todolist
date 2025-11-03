@@ -41,9 +41,8 @@ export default function TaskDetailPage() {
   // Fetch task detail
   useEffect(() => {
     console.log(id,"task id")
-    console.log(task, "task")
     console.log("Task ID param:", numericTaskId);
-console.log("Task:", task);
+
     const fetchTask = async () => {
       try {
         const data = await getTask(numericTaskId);
