@@ -1,8 +1,10 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth.hook";
+import { useNotifications } from "@/hooks/useNotification.hook";
 import ProfilePopup from "@/components/popup/profileModal";
 import { UserProfile } from "@/types/user.type";
 
@@ -12,13 +14,21 @@ export default function Navbar() {
   const [isMounted, setIsMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const { user, isAuthenticated, logout, setUser } = useAuth(); 
+  const { user, isAuthenticated, logout, setUser } = useAuth();
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    markAsRead,
+  } = useNotifications();
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
-  const notificationCount = 3;
 
   useEffect(() => setIsMounted(true), []);
 
+  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -38,7 +48,26 @@ export default function Navbar() {
   if (!isMounted) return null;
 
   const handleProfileUpdated = (updatedUser: UserProfile): void => {
-    setUser(updatedUser); // 
+    setUser(updatedUser);
+  };
+
+  const handleNotificationClick = async (notifId: number, type: string, relatedId: number) => {
+    await markAsRead(notifId);
+    switch (type) {
+      case "TASK_ASSIGN":
+      case "COMMENT":
+        window.location.href = `/task/${relatedId}`;
+        break;
+      case "PROJECT":
+        window.location.href = `/projects/${relatedId}`;
+        break;
+      case "INVITE":
+      case "WORKSPACE":
+        window.location.href = `/workspace`;
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -86,29 +115,54 @@ export default function Navbar() {
                       className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/20 text-white transition-colors duration-200"
                     >
                       <Bell className="h-6 w-6 text-yellow-500" />
-                      {notificationCount > 0 && (
+                      {unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                          {notificationCount}
+                          {unreadCount}
                         </span>
                       )}
                     </button>
 
                     {activeDropdown === "notif" && (
-                      <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-md shadow-lg py-2 z-50 animate-fadeInDown">
-                        <p className="px-4 py-2 text-sm text-gray-600">
-                          Bạn có {notificationCount} thông báo
+                      <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-md shadow-lg py-2 z-50 animate-fadeInDown max-h-96 overflow-y-auto">
+                        <p className="px-4 py-2 text-sm text-gray-600 border-b">
+                          {loading
+                            ? "Đang tải thông báo..."
+                            : error
+                            ? "Không thể tải thông báo"
+                            : `Bạn có ${unreadCount} thông báo chưa đọc`}
                         </p>
-                        <Link
-                          href="/notifications"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Xem tất cả
-                        </Link>
+
+                        {!loading && !error && notifications.length === 0 && (
+                          <p className="px-4 py-4 text-sm text-gray-500 text-center">
+                            Không có thông báo nào
+                          </p>
+                        )}
+
+                        {!loading &&
+                          notifications.slice(0, 6).map((notif) => (
+                            <div
+                              key={notif.id}
+                              onClick={() =>
+                                handleNotificationClick(notif.id, notif.type, notif.relatedId)
+                              }
+                              className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 transition ${
+                                notif.isRead
+                                  ? "text-gray-500"
+                                  : "font-semibold text-gray-800"
+                              }`}
+                            >
+                              <p>{notif.message}</p>
+                              <span className="text-xs text-gray-400">
+                                {new Date(notif.createdAt).toLocaleString("vi-VN")}
+                              </span>
+                            </div>
+                          ))}
+
                       </div>
                     )}
                   </div>
 
-                  {/* Avatar + name */}
+                  {/* Avatar */}
                   <div className="relative">
                     <button
                       onClick={() => setIsProfileOpen(true)}
@@ -117,7 +171,7 @@ export default function Navbar() {
                     >
                       <img
                         src={user?.avatarUrl || "/images/avatar/avatardefault.png"}
-                        alt={user?.name || "User"}
+                        alt={user?.name || "User"} 
                         className="h-12 w-12 rounded-full border border-gray-300"
                       />
                       <span className="ml-2 text-black">{user?.name || "User"}</span>
@@ -198,13 +252,6 @@ export default function Navbar() {
                       Profile
                     </Link>
                     <Link
-                      href="/settings"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Settings
-                    </Link>
-                    <Link
                       href="/notifications"
                       className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
                       onClick={() => setIsOpen(false)}
@@ -228,12 +275,12 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/*  Gắn popup profile và truyền callback update */}
+      {/* Profile modal */}
       <ProfilePopup
         user={user}
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
-        onUpdated={handleProfileUpdated} 
+        onUpdated={handleProfileUpdated}
       />
     </>
   );
