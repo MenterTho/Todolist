@@ -26,21 +26,21 @@ const router = useRouter();
 const grouped = useMemo(() => {
 const groups = { todo: [] as Task[], inprogress: [] as Task[], done: [] as Task[] };
 for (const task of tasks) {
-const key =
-task.status === "To Do"
-? "todo"
-: task.status === "In Progress"
-? "inprogress"
-: "done";
-if (
-task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-task.project?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-) {
-groups[key].push(task);
-}
-}
-return groups;
-}, [tasks, searchTerm]);
+      const key =
+      task.status === "To Do"
+      ? "todo"
+      : task.status === "In Progress"
+      ? "inprogress"
+      : "done";
+      if (
+      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.project?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
+      groups[key].push(task);
+      }
+    }
+      return groups;
+      }, [tasks, searchTerm]);
 
 const [localColumns, setLocalColumns] = useState(grouped);
 useEffect(() => setLocalColumns(grouped), [tasks, searchTerm]);

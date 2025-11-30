@@ -1,27 +1,47 @@
+// app/projects/ProjectPage.tsx (hoặc pages/projects/index.tsx)
 "use client";
-import { useState } from "react";
+
+import React, { useMemo, useState } from "react";
 import { useUserProjects, useProjectMutations } from "@/hooks/useProject.hook";
 import { useAuth } from "@/hooks/useAuth.hook";
-import { Project } from "@/types/project.type";
+import type { Project, CreateProjectRequest } from "@/types/project.type";
 import { Loader2, Edit, Trash2, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 import EditProjectModal from "@/components/popup/editProjectModal";
+import CreateProjectModal from "@/components/popup/createProjectModal";
 
 export default function ProjectPage() {
   const { user } = useAuth();
   const { data: projects, isLoading, isError } = useUserProjects();
-  const { deleteProject, updateProject } = useProjectMutations();
+  const { createProject, deleteProject, updateProject } = useProjectMutations();
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
 
-  // Hàm lấy role của user trong workspace
+  // Lấy role của user trong workspace (nếu có)
   const getUserRoleInWorkspace = (project: Project) => {
-    const member = project.workspace.userWorkspaces.find(
-      (uw) => uw.userId === user?.id
-    );
+    const member = project.workspace.userWorkspaces.find((uw) => uw.userId === user?.id);
     return member?.role;
   };
+
+  const workspaces = useMemo(() => {
+    const map = new Map<number, { id: number; name: string }>();
+    projects?.forEach((p) => {
+      const ws = p.workspace;
+      if (ws && !map.has(ws.id)) {
+        map.set(ws.id, { id: ws.id, name: ws.name });
+      }
+    });
+    return Array.from(map.values());
+  }, [projects]);
+
+  const isMemberOfAnyWorkspace = useMemo(() => {
+    if (!projects || !user) return false;
+    return projects.some((p) =>
+      p.workspace?.userWorkspaces?.some((uw) => uw.userId === user.id)
+    );
+  }, [projects, user]);
 
   if (isLoading) {
     return (
@@ -39,26 +59,17 @@ export default function ProjectPage() {
     );
   }
 
-  if (!projects || projects.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
-        Chưa có dự án nào được tạo.
-      </div>
-    );
-  }
-
   const handleEdit = (project: Project) => {
     setSelectedProject(project);
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Bạn có chắc muốn xóa dự án này không?")) {
-      deleteProject(id, {
-        onSuccess: () => toast.success("Xóa dự án thành công!"),
-        onError: () => toast.error("Xóa dự án thất bại!"),
-      });
-    }
+    if (!confirm("Bạn có chắc muốn xóa dự án này không?")) return;
+    deleteProject(id, {
+      onSuccess: () => toast.success("Xóa dự án thành công!"),
+      onError: () => toast.error("Xóa dự án thất bại!"),
+    });
   };
 
   const handleSave = (updated: Partial<Project>) => {
@@ -75,13 +86,26 @@ export default function ProjectPage() {
       {
         onSuccess: () => {
           toast.success(`Cập nhật dự án "${updated.name}" thành công!`);
-          setIsModalOpen(false);
+          setIsEditModalOpen(false);
         },
-        onError: (error) => {
-          toast.error(error.message || "Cập nhật dự án thất bại!");
+        onError: (err) => {
+          toast.error((err as Error)?.message || "Cập nhật dự án thất bại!");
         },
       }
     );
+  };
+
+  // onCreate callback nhận payload từ modal và gọi mutation
+  const handleCreate = (payload: CreateProjectRequest) => {
+    createProject(payload, {
+      onSuccess: () => {
+        toast.success("Tạo dự án thành công!");
+        setIsCreateModalOpen(false);
+      },
+      onError: (err: unknown) => {
+        toast.error((err as Error)?.message || "Tạo dự án thất bại");
+      },
+    });
   };
 
   return (
@@ -95,25 +119,13 @@ export default function ProjectPage() {
           </p>
         </div>
 
-        {/* Chỉ owner/management mới được tạo project */}
-        {["owner", "management"].includes(user?.role || "") && (
+        {isMemberOfAnyWorkspace && (
           <button
-            onClick={() => toast("Chức năng tạo mới đang phát triển")}
+            onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl shadow transition-all"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Tạo Project mới
           </button>
@@ -122,7 +134,7 @@ export default function ProjectPage() {
 
       {/* Danh sách dự án */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-        {projects.map((project: Project) => {
+        {projects?.map((project) => {
           const role = getUserRoleInWorkspace(project);
           const canManage = ["owner", "management"].includes(role || "");
 
@@ -133,9 +145,7 @@ export default function ProjectPage() {
             >
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-semibold text-gray-800">
-                    {project.name}
-                  </h2>
+                  <h2 className="text-lg font-semibold text-gray-800">{project.name}</h2>
                   <span className="text-xs font-medium px-3 py-1 rounded-full bg-green-100 text-green-700">
                     Active
                   </span>
@@ -147,23 +157,10 @@ export default function ProjectPage() {
 
               <div className="flex justify-between items-center border-t pt-3 mt-3 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-indigo-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5V4H2v16h5m10 0a2 2 0 11-4 0m4 0H9"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5V4H2v16h5m10 0a2 2 0 11-4 0m4 0H9" />
                   </svg>
-                  <span>
-                    {project.workspace?.userWorkspaces?.length ?? 0} thành viên
-                  </span>
+                  <span>{project.workspace?.userWorkspaces?.length ?? 0} thành viên</span>
                 </div>
 
                 <div className="flex gap-3">
@@ -175,7 +172,6 @@ export default function ProjectPage() {
                     <Eye size={18} />
                   </button>
 
-                  {/* Nút Edit/Delete chỉ hiển thị nếu có quyền */}
                   {canManage && (
                     <>
                       <button
@@ -201,13 +197,10 @@ export default function ProjectPage() {
         })}
       </div>
 
-      {/* Popup Edit Project */}
-      <EditProjectModal
-        project={selectedProject}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-      />
+      {/* Edit modal */}
+      <EditProjectModal project={selectedProject} isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSave} />
+
+      {isCreateModalOpen && <CreateProjectModal onClose={() => setIsCreateModalOpen(false)} workspaces={workspaces} onCreate={handleCreate} />}
     </div>
   );
 }
