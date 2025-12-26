@@ -10,13 +10,34 @@ import { Comment } from "../../modules/comment/model/comment.model";
 import { Notification } from "../../modules/notification/models/notification.model";
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || "5432"),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS || "",
-  database: process.env.DB_NAME,
-  entities: [User, Session, Workspace, UserWorkspace, Project, Task, Comment, Notification],
-  synchronize: true, 
+  // host: process.env.DB_HOST,
+  // port: parseInt(process.env.DB_PORT || "5432"),
+  // username: process.env.DB_USER,
+  // password: process.env.DB_PASS || "",
+  // database: process.env.DB_NAME,
+  // entities: [User, Session, Workspace, UserWorkspace, Project, Task, Comment, Notification],
+  // synchronize: true, 
+
+  //DB URL connection
+  url: process.env.DATABASE_URL,
+
+  entities: [
+    User,
+    Session,
+    Workspace,
+    UserWorkspace,
+    Project,
+    Task,
+    Comment,
+    Notification,
+  ],
+
+  synchronize: true,
+  logging: false,
+  ssl: process.env.NODE_ENV === "production"
+    ? { rejectUnauthorized: false }
+    : false,
+
 });
 
 export const initDB = async () => {
