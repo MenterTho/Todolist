@@ -18,6 +18,7 @@ import { NotificationModule } from "./modules/notification/notification.module";
 
 const configureApp = (app: express.Application) => {
   const router = Router();
+  app.set("trust proxy", 1);
 
   app.use(cors({
     origin: "http://localhost:3000", 
