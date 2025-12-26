@@ -19,7 +19,6 @@ export default function ProjectPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
 
-  // Lấy role của user trong workspace (nếu có)
   const getUserRoleInWorkspace = (project: Project) => {
     const member = project.workspace.userWorkspaces.find((uw) => uw.userId === user?.id);
     return member?.role;

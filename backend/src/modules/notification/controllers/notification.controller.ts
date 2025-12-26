@@ -1,4 +1,3 @@
-// src/modules/notification/controllers/notification.controller.ts
 import { Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
 import { CreateNotificationDto } from "../dtos/createNotification.dto";

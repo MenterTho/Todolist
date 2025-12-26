@@ -67,7 +67,6 @@ export function useTaskMutations() {
 
   return {
     createTask: createTaskMutation.mutate,
-    createTaskAsync: createTaskMutation.mutateAsync,
     updateTask: updateTaskMutation.mutate,
     deleteTask: deleteTaskMutation.mutate,
     isLoading: createTaskMutation.isPending || updateTaskMutation.isPending || deleteTaskMutation.isPending,
