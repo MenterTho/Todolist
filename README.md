@@ -61,7 +61,6 @@ Hệ thống hỗ trợ quản lý công việc nhóm một cách rõ ràng, lin
 [![Express](https://img.shields.io/badge/Express-5-black?logo=express)](https://expressjs.com/)
 [![TypeORM](https://img.shields.io/badge/TypeORM-0.3-red)](https://typeorm.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-5-red?logo=redis)](https://redis.io/)
 [![JWT](https://img.shields.io/badge/JWT-Auth-black?logo=jsonwebtoken)](https://jwt.io/)
 [![Firebase](https://img.shields.io/badge/Firebase-Admin-orange?logo=firebase)](https://firebase.google.com/)
 [![Cloudinary](https://img.shields.io/badge/Cloudinary-Upload-blue?logo=cloudinary)](https://cloudinary.com/)
