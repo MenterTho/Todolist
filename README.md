@@ -204,4 +204,4 @@ USE_ESM=true
 <p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/detailTask_page.png" width="800"/> </p>
 <p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/detailWorkspace_page.png" width="800"/> </p>
 <p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/notification_page.png" width="800"/> </p>
-## 11: Link deploy: https://vercel.com/zeen-thos-projects/todolist
+## 11: Link deploy: https://todolist-lac-ten.vercel.app/
