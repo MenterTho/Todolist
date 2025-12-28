@@ -192,4 +192,16 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_KEY\n-----END PRIVATE KE
 NODE_ENV=development
 USE_ESM=true
 
+```
+
 ## 4. Screenshots
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/home_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/login_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/register_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/project_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/task_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/detailTask_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/detailTask_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/detailWorkspace_page.png" width="800"/> </p>
+<p align="center"> <img src="https://raw.githubusercontent.com/MenterTho/Todolist/master/frontend/public/images_project/notification_page.png" width="800"/> </p>
+## 11: Link deploy: https://vercel.com/zeen-thos-projects/todolist
