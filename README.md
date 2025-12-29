@@ -66,6 +66,8 @@ Hệ thống hỗ trợ quản lý công việc nhóm một cách rõ ràng, lin
 [![Cloudinary](https://img.shields.io/badge/Cloudinary-Upload-blue?logo=cloudinary)](https://cloudinary.com/)
 [![Nodemailer](https://img.shields.io/badge/Nodemailer-Email-green)](https://nodemailer.com/)
 [![Jest](https://img.shields.io/badge/Jest-Test-red?logo=jest)](https://jestjs.io/)
+[![Validation](https://img.shields.io/badge/Validation-class--validator-blueviolet)]
+[![Security](https://img.shields.io/badge/Security-JWT%20%7C%20Bcrypt%20%7C%20Rate%20Limit-darkred)]
 
 ---
 
